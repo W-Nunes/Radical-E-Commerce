@@ -1,0 +1,37 @@
+# ------------------------------------------------------
+# THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
+# ------------------------------------------------------
+
+type Categoria {
+  id: ID!
+  nome: String!
+  slug: String!
+}
+
+type Produto {
+  categoria: Categoria!
+  descricao: String
+  emEstoque: Boolean!
+  id: ID!
+  imagemUrlPrincipal: String
+  nome: String!
+  preco: Float!
+  sku: String!
+}
+
+type Query {
+  """Busca todas as categorias."""
+  categorias: [Categoria!]!
+
+  """Busca um único produto pelo seu ID."""
+  produto(
+    """ID (UUID) do produto a ser buscado"""
+    id: ID!
+  ): Produto
+
+  """Busca todos os produtos, com filtro opcional por slug da categoria."""
+  produtos(
+    """Slug da categoria para filtrar os produtos"""
+    categoriaSlug: String
+  ): [Produto!]!
+}
