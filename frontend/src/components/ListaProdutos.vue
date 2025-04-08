@@ -15,25 +15,35 @@
 
     <div v-else-if="resultado?.produtos && resultado.produtos.length > 0"
       class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-      <div v-for="produto in resultado.produtos" :key="produto.id"
-        class="border rounded-lg overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-300 bg-white flex flex-col">
-        <img :src="produto.imagemUrlPrincipal || 'https://via.placeholder.com/300x200?text=Radical'"
-          alt="Imagem do produto" class="w-full h-48 object-cover">
-        <div class="p-4 flex flex-col flex-grow">
-          <span class="text-sm font-medium text-azul-radical mb-1">{{ produto.categoria.nome }}</span>
-          <h3 class="font-semibold text-lg mb-2 flex-grow" :title="produto.nome">{{ produto.nome }}</h3>
-          <p class="text-gray-500 text-xs mb-2">SKU: {{ produto.sku }}</p>
-          <p class="text-gray-900 font-bold text-2xl mb-4">R$ {{ formatarPreco(produto.preco) }}</p>
-          
-          <button v-if="produto.emEstoque" @click="adicionarAoCarrinho(produto)"
-            class="mt-auto w-full bg-blue-600 text-white font-bold py-2 px-4 rounded">
-            Adicionar ao Carrinho
-          </button>
 
-          <p v-else class="mt-auto text-center text-sm text-gray-500 py-2">Produto Indisponível</p>
+      <router-link
+        v-for="produto in resultado.produtos"
+        :key="produto.id"
+        :to="{ name: 'DetalheProduto', params: { id: produto.id } }" 
+        class="no-underline hover:opacity-90" _
+      >
+        <div
+            class="border rounded-lg overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-300 bg-white flex flex-col h-full"
+        >
+            <img :src="produto.imagemUrlPrincipal || 'https://placehold.co/600x400/cccccc/E53E3E?text=Sem+Imagem'" :alt="'Imagem de ' + produto.nome" class="w-full h-48 object-cover">
+            <div class="p-4 flex flex-col flex-grow">
+                <span class="text-sm font-medium text-azul-radical mb-1">{{ produto.categoria.nome }}</span>
+                <h3 class="font-semibold text-lg mb-2 flex-grow text-gray-900" :title="produto.nome">{{ produto.nome }}</h3>
+                <p class="text-gray-500 text-xs mb-2">SKU: {{ produto.sku }}</p>
+                <p class="text-gray-900 font-bold text-2xl mb-4">R$ {{ formatarPreco(produto.preco) }}</p>
+
+                <button
+                    v-if="produto.emEstoque"
+                    @click.prevent="adicionarAoCarrinho(produto)" 
+                    class="mt-auto w-full bg-vermelho-radical hover:bg-red-700 text-white font-bold py-2 px-4 rounded transition-colors duration-200 z-10 relative" 
+                >
+                    Adicionar ao Carrinho
+                </button>
+
+                <p v-else class="mt-auto text-center text-sm text-gray-500 py-2">Produto Indisponível</p>
+            </div>
         </div>
-      </div>
-    </div>
+      </router-link> </div>
 
     <div v-else class="text-center py-10 text-gray-500">
       <p>Nenhum produto encontrado no momento.</p>
@@ -44,8 +54,8 @@
 
 <script setup lang="ts">
 // Importa o necessário do Apollo Composable
-import { useQuery } from '@vue/apollo-composable'; // useQuery vem daqui
-import { gql } from '@apollo/client/core';      // gql vem daqui (ou de 'graphql-tag')
+import { useQuery } from '@vue/apollo-composable';
+import { gql } from '@apollo/client/core';
 
 // Define as interfaces para tipagem forte (espelham os DTOs do backend)
 interface Categoria {
@@ -58,16 +68,17 @@ interface Produto {
   nome: string;
   preco: number;
   sku: string;
-  imagemUrlPrincipal?: string;
+  imagemUrlPrincipal?: string; // Mantido opcional aqui
   categoria: Categoria; // Categoria aninhada
   emEstoque: boolean; // Campo calculado
+  // Adicionar descricao aqui se a query buscar, mesmo que não use neste template
+  descricao?: string | null;
 }
 interface ResultadoQueryProdutos {
   produtos: Produto[]; // A query retorna um array de produtos
 }
 
 // Define a query GraphQL usando gql tag
-// Pede todos os campos definidos no ProdutoOutput e CategoriaOutput do backend
 const BUSCAR_PRODUTOS_QUERY = gql`
     query BuscarTodosProdutosComCategoria {
       produtos {
@@ -88,9 +99,6 @@ const BUSCAR_PRODUTOS_QUERY = gql`
   `
 
 // Executa a query ao montar o componente
-// 'resultado' é reativo e será atualizado com os dados ou null
-// 'carregando' é um booleano reativo
-// 'erro' conterá o erro se a query falhar
 const { result: resultado, loading: carregando, error: erro } = useQuery<ResultadoQueryProdutos>(BUSCAR_PRODUTOS_QUERY);
 
 // Função auxiliar para formatar o preço
