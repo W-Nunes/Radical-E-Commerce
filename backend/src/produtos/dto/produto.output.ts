@@ -1,7 +1,7 @@
 import { ObjectType, Field, ID, Float, Int } from '@nestjs/graphql';
 import { CategoriaOutput } from './categoria.output';
 
-@ObjectType('Produto') // Nome do tipo no Schema GraphQL
+@ObjectType('Produto')
 export class ProdutoOutput {
   @Field(() => ID)
   id: string;
@@ -9,8 +9,14 @@ export class ProdutoOutput {
   @Field()
   nome: string;
 
-  @Field({ nullable: true })
-  descricao?: string;
+  // --- CORREÇÃO AQUI ---
+  // Antes era:
+  // @Field({ nullable: true })
+  // descricao?: string;
+  // Agora: Define explicitamente o tipo e a nulidade para GraphQL e TS
+  @Field(() => String, { nullable: true })
+  descricao: string | null;
+  // ---------------------
 
   @Field(() => Float)
   preco: number;
@@ -18,16 +24,18 @@ export class ProdutoOutput {
   @Field()
   sku: string;
 
-  @Field({ nullable: true })
-  imagemUrlPrincipal?: string;
+  // --- CORREÇÃO AQUI ---
+  // Antes era:
+  // @Field({ nullable: true })
+  // imagemUrlPrincipal?: string;
+  // Agora: Define explicitamente o tipo e a nulidade para GraphQL e TS
+  @Field(() => String, { nullable: true })
+  imagemUrlPrincipal: string | null;
+  // ---------------------
 
-  // Expondo a categoria como um tipo aninhado no GraphQL
   @Field(() => CategoriaOutput)
   categoria: CategoriaOutput;
 
-  // Exemplo: Campo calculado ou com lógica diferente da entidade
   @Field(() => Boolean)
-  emEstoque: boolean; // Será calculado no resolver
-
-  // Não expomos quantidadeEstoque diretamente
+  emEstoque: boolean;
 }

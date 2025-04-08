@@ -1,0 +1,32 @@
+[
+    {
+      "nome": "Skates Montados",
+      "slug": "skates-montados",
+      "descricao": "Skates completos, prontos para andar."
+    },
+    {
+      "nome": "Shapes",
+      "slug": "shapes",
+      "descricao": "Shapes de diversas marcas, tamanhos e materiais."
+    },
+    {
+      "nome": "Rodas",
+      "slug": "rodas",
+      "descricao": "Rodas de skate de diferentes durezas e tamanhos."
+    },
+    {
+      "nome": "Trucks",
+      "slug": "trucks",
+      "descricao": "Trucks (eixos) para skate."
+    },
+    {
+      "nome": "BMX",
+      "slug": "bmx",
+      "descricao": "Peças e acessórios para bicicletas BMX."
+    },
+    {
+      "nome": "Acessórios",
+      "slug": "acessorios",
+      "descricao": "Capacetes, joelheiras, cotoveleiras, lixas, rolamentos e mais."
+    }
+  ]

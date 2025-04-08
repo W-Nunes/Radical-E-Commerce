@@ -1,0 +1,56 @@
+[
+  {
+    "nome": "Skate Montado Element Section",
+    "descricao": "Skate completo da Element, ideal para iniciantes e intermediários. Maple Canadense.",
+    "preco": 499.90,
+    "sku": "SKT-ELM-SEC01",
+    "quantidadeEstoque": 15,
+    "imagemUrlPrincipal": "https://images.tcdn.com.br/img/img_prod/17375/skate_element_montado_completo_pro_bazin_reds_bones_next_next_stiick_visible_vermelho_4165_1_2e3cf261d6826c5d3fd487ff3227b632.jpg",
+    "categoriaSlug": "skates-montados"
+  },
+  {
+    "nome": "Shape Santa Cruz Screaming Hand 8.0",
+    "descricao": "Shape clássico da Santa Cruz com a icônica arte Screaming Hand. Tamanho 8.0 polegadas.",
+    "preco": 349.50,
+    "sku": "SHP-SCZ-SCR80",
+    "quantidadeEstoque": 25,
+    "imagemUrlPrincipal": "https://overboard.vteximg.com.br/arquivos/ids/310123-1000-1000/DSC_2038.jpg?v=637497748192300000",
+    "categoriaSlug": "shapes"
+  },
+  {
+    "nome": "Rodas Spitfire Formula Four 54mm 99a",
+    "descricao": "Rodas Spitfire F4 Conical Full, alta performance e durabilidade. Dureza 99a, tamanho 54mm.",
+    "preco": 299.00,
+    "sku": "ROD-SPF-F4CF54",
+    "quantidadeEstoque": 30,
+    "imagemUrlPrincipal": "https://primorskateshop.com.br/imagens/produtos_variedades/Roda-Spitfire-Wheels-Classic-BIGHEAD-Edition-Classic-Formula-52mm-99DU-Branco-Preto-Vermelho-3895.jpg",
+    "categoriaSlug": "rodas"
+  },
+  {
+    "nome": "Truck Independent Stage 11 149mm",
+    "descricao": "Trucks Independent polidos, modelo Stage 11 Standard. Tamanho 149mm.",
+    "preco": 450.00,
+    "sku": "TRK-IND-S11149",
+    "quantidadeEstoque": 10,
+    "imagemUrlPrincipal": "https://cdn.awsli.com.br/600x700/1769/1769026/produto/120663712/dc84fee6e7.jpg",
+    "categoriaSlug": "trucks"
+  },
+  {
+    "nome": "Capacete Pro-Tec Classic Cert",
+    "descricao": "Capacete Pro-Tec modelo Classic Certified, alta proteção e conforto. Cor preta fosca.",
+    "preco": 399.90,
+    "sku": "ACS-PTC-CLSCERT",
+    "quantidadeEstoque": 20,
+    "imagemUrlPrincipal": "https://http2.mlstatic.com/D_NQ_NP_707787-MLB49559430021_042022-O-capacete-pro-tec-skate-profissional-matte-black-fosco.webp",
+    "categoriaSlug": "acessorios"
+  },
+  {
+    "nome": "Guidão BMX Cult Crew",
+    "descricao": "Guidão para BMX da marca Cult, modelo Crew. Leve e resistente.",
+    "preco": 380.00,
+    "sku": "BMX-CLT-CREWHB",
+    "quantidadeEstoque": 8,
+    "imagemUrlPrincipal": "https://i.ebayimg.com/images/g/HDAAAOSwIwRgIca4/s-l1600.webp",
+    "categoriaSlug": "bmx"
+  }
+]

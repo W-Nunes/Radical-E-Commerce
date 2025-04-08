@@ -10,7 +10,7 @@ export class ProdutoEntity {
   nome: string;
 
   @Column('text', { nullable: true })
-  descricao: string;
+  descricao: string | null;
 
   @Column('decimal', { precision: 10, scale: 2 })
   preco: number;
@@ -21,8 +21,8 @@ export class ProdutoEntity {
   @Column({ name: 'quantidade_estoque', type: 'int', default: 0 })
   quantidadeEstoque: number;
 
-  @Column({ name: 'imagem_url_principal', nullable: true })
-  imagemUrlPrincipal: string;
+  @Column({ name: 'imagem_url_principal', type: 'text', nullable: true })
+  imagemUrlPrincipal: string | null;
 
   // Relacionamento: Muitos produtos pertencem a uma categoria
   // nullable: false -> indica que a categoria é obrigatória para o produto

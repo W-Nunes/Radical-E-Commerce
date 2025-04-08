@@ -1,16 +1,18 @@
-import { Resolver, Query, Args, ID, ResolveField, Parent } from '@nestjs/graphql';
+import { Resolver, Query, Args, ID } from '@nestjs/graphql'; // Removido ResolveField, Parent por enquanto
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { ProdutoEntity } from '../database/entities/produto.entity';
 import { CategoriaEntity } from '../database/entities/categoria.entity';
 import { ProdutoOutput } from './dto/produto.output';
 import { CategoriaOutput } from './dto/categoria.output';
-import { NotFoundException } from '@nestjs/common';
+import { NotFoundException, Logger } from '@nestjs/common'; // Importar Logger
 
-@Resolver(() => ProdutoOutput) // Indica que este resolver lida primariamente com ProdutoOutput
+@Resolver(() => ProdutoOutput)
 export class ProdutosResolver {
+  // Criar um logger para esta classe
+  private readonly logger = new Logger(ProdutosResolver.name);
+
   constructor(
-    // Injeta os repositórios do TypeORM
     @InjectRepository(ProdutoEntity)
     private readonly produtoRepository: Repository<ProdutoEntity>,
     @InjectRepository(CategoriaEntity)
@@ -24,62 +26,100 @@ export class ProdutosResolver {
     @Args('categoriaSlug', { type: () => String, nullable: true, description: 'Slug da categoria para filtrar os produtos' }) categoriaSlug?: string,
   ): Promise<ProdutoOutput[]> {
     const queryBuilder = this.produtoRepository.createQueryBuilder('produto')
-       // Carrega a relação 'categoria' automaticamente por causa do 'eager: true' na entidade,
-       // mas podemos ser explícitos se quisermos: .leftJoinAndSelect('produto.categoria', 'categoria');
+       // Garante que a relação categoria seja carregada (mesmo se eager:true for removido no futuro)
+       .leftJoinAndSelect('produto.categoria', 'categoria');
 
     if (categoriaSlug) {
-      // Filtra pela slug da categoria relacionada
-      queryBuilder.innerJoin('produto.categoria', 'categoria', 'categoria.slug = :slug', { slug: categoriaSlug });
+      // Renomeado alias do join de filtro para evitar conflito com o alias 'categoria' do select
+      queryBuilder.innerJoin('produto.categoria', 'cat_filter', 'cat_filter.slug = :slug', { slug: categoriaSlug });
     }
 
     const produtosEntidades = await queryBuilder.getMany();
 
-    // Mapeia Entidade para Output DTO (incluindo o campo calculado 'emEstoque')
-    return produtosEntidades.map(produto => ({
-      ...produto,
-      emEstoque: produto.quantidadeEstoque > 0,
-    }));
+    // --- MAPEAMENTO EXPLÍCITO APLICADO ---
+    return produtosEntidades.map(produto => {
+        // Verificação de segurança: a categoria deveria sempre existir devido ao nullable:false
+        if (!produto.categoria) {
+           this.logger.error(`Produto ${produto.id} (${produto.nome}) está sem categoria associada no banco! Pulando este produto no resultado.`);
+           // Lançar um erro aqui pararia toda a query. Retornar null/undefined ou filtrar
+           // pode ser uma opção dependendo do requisito, mas indica um problema nos dados.
+           // Por segurança, vamos pular este produto problemático (requer ajuste no tipo de retorno se filtrar)
+           // Melhor ainda: lançar erro para indicar inconsistência
+            throw new Error(`Inconsistência de dados: Produto ${produto.id} sem categoria obrigatória.`);
+        }
+
+        // Constrói o objeto ProdutoOutput explicitamente
+        const produtoOutput: ProdutoOutput = {
+            id: produto.id,
+            nome: produto.nome,
+            descricao: produto.descricao, // Já é string | null
+            preco: produto.preco,
+            sku: produto.sku,
+            imagemUrlPrincipal: produto.imagemUrlPrincipal, // Já é string | null
+            emEstoque: produto.quantidadeEstoque > 0,
+            // Mapeia a categoria para CategoriaOutput
+            categoria: {
+                id: produto.categoria.id,
+                nome: produto.categoria.nome,
+                slug: produto.categoria.slug,
+            }
+        };
+        return produtoOutput;
+    });
+    // ---------------------------------
   }
 
   @Query(() => ProdutoOutput, { name: 'produto', nullable: true, description: 'Busca um único produto pelo seu ID.' })
   async buscarProdutoPorId(
     @Args('id', { type: () => ID, description: 'ID (UUID) do produto a ser buscado' }) id: string,
   ): Promise<ProdutoOutput | null> {
-    // 'relations' não é necessário aqui por causa do 'eager: true' na entidade Categoria
-    const produtoEntidade = await this.produtoRepository.findOne({ where: { id } });
+    // Carrega o produto e sua categoria (eager: true na entidade ajuda, mas leftJoinAndSelect aqui seria mais explícito se eager fosse false)
+    const produtoEntidade = await this.produtoRepository.findOne({
+        where: { id },
+        // relations: ['categoria'] // Necessário se eager:false na entidade
+    });
 
     if (!produtoEntidade) {
-      return null; // Retorna null se não encontrado, como padrão no GraphQL
+      return null; // Produto não encontrado
     }
 
-    // Mapeia para o DTO de saída
-    return {
-      ...produtoEntidade,
-      emEstoque: produtoEntidade.quantidadeEstoque > 0,
+    // --- MAPEAMENTO EXPLÍCITO APLICADO ---
+    // Verificação de segurança para categoria
+    if (!produtoEntidade.categoria) {
+        this.logger.error(`Produto ${produtoEntidade.id} (${produtoEntidade.nome}) está sem categoria associada no banco!`);
+        // Como a query GraphQL espera um ProdutoOutput ou null, retornar null aqui pode ser uma opção,
+        // mas indica um sério problema nos dados. Lançar um erro é mais informativo sobre a inconsistência.
+         throw new Error(`Inconsistência de dados: Produto ${produtoEntidade.id} sem categoria obrigatória.`);
+    }
+
+    // Constrói o objeto ProdutoOutput explicitamente
+    const produtoOutput: ProdutoOutput = {
+        id: produtoEntidade.id,
+        nome: produtoEntidade.nome,
+        descricao: produtoEntidade.descricao,
+        preco: produtoEntidade.preco,
+        sku: produtoEntidade.sku,
+        imagemUrlPrincipal: produtoEntidade.imagemUrlPrincipal,
+        emEstoque: produtoEntidade.quantidadeEstoque > 0,
+        // Mapeia a categoria para CategoriaOutput
+        categoria: {
+            id: produtoEntidade.categoria.id,
+            nome: produtoEntidade.categoria.nome,
+            slug: produtoEntidade.categoria.slug,
+        }
     };
+    return produtoOutput;
+    // ---------------------------------
   }
 
   @Query(() => [CategoriaOutput], { name: 'categorias', description: 'Busca todas as categorias.' })
   async buscarCategorias(): Promise<CategoriaOutput[]> {
-    // Como CategoriaOutput é simples e corresponde à entidade, podemos retornar diretamente
     return this.categoriaRepository.find();
   }
 
-  // --- RESOLVE FIELD ---
-  // Exemplo se não usássemos 'eager: true' ou precisássemos buscar dados adicionais
-  // @ResolveField('categoria', () => CategoriaOutput)
-  // async buscarCategoriaDoProduto(@Parent() produto: ProdutoEntity): Promise<CategoriaOutput> {
-  //   // Aqui buscaríamos a categoria associada ao produto 'pai'
-  //   console.log('Resolvendo campo categoria para o produto:', produto.id);
-  //   // Esta chamada seria feita apenas se o cliente GraphQL pedisse o campo 'categoria'
-  //   return await this.categoriaRepository.findOne({ where: { id: produto.categoria.id } }); // Exemplo simplificado
-  // }
-
-  // --- MUTATIONS ---
-  // Adicionar mutations (criarProduto, atualizarProduto, etc.) aqui depois...
-  // Exemplo (requer DTOs de Input e lógica de serviço):
+  // --- MUTATIONS --- (Ainda como exemplo)
   // @Mutation(() => ProdutoOutput)
   // async criarProduto(@Args('dadosProduto') dadosProduto: CriarProdutoInput): Promise<ProdutoOutput> {
-  //   // ... lógica para criar e salvar ...
+  //   // ...
   // }
 }

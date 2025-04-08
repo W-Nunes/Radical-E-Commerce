@@ -13,7 +13,7 @@ export class CategoriaEntity {
   slug: string; // Ex: 'skates-completos'
 
   @Column('text', { nullable: true })
-  descricao: string;
+  descricao: string | null;
 
   // Relacionamento Inverso: Uma categoria tem muitos produtos
   @OneToMany(() => ProdutoEntity, (produto) => produto.categoria)

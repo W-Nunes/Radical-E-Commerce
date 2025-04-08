@@ -4,7 +4,8 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { GraphQLModule } from '@nestjs/graphql';
 import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
 import { join } from 'path';
-import { ProdutosModule } from './produtos/produtos.module'; // Verifique se o caminho está correto
+import { ProdutosModule } from './produtos/produtos.module';
+import { SeedModule } from './seed/seed.module'; // <<< IMPORTAR O SEED MODULE
 
 @Module({
   imports: [
@@ -12,42 +13,37 @@ import { ProdutosModule } from './produtos/produtos.module'; // Verifique se o c
       isGlobal: true,
       envFilePath: '.env',
     }),
-    // Ajuste na configuração do TypeOrmModule para usar variáveis separadas
     TypeOrmModule.forRootAsync({
+      // ... (configuração TypeORM como antes) ...
       imports: [ConfigModule],
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => {
-        // Busca cada variável individualmente do .env
         const host = configService.get<string>('PGHOST');
         const database = configService.get<string>('PGDATABASE');
         const username = configService.get<string>('PGUSER');
         const password = configService.get<string>('PGPASSWORD');
-        const port = configService.get<number>('PGPORT', 5432); // Usa 5432 como padrão se PGPORT não estiver no .env
+        const port = configService.get<number>('PGPORT', 5432);
 
-        // Verifica se as variáveis essenciais foram carregadas
         if (!host || !database || !username || !password) {
           throw new Error('Variáveis de ambiente do banco de dados não configuradas corretamente no .env');
         }
 
         return {
-          type: 'postgres', // Tipo do banco
-          host: host,       // Host do Neon
-          port: port,       // Porta (padrão 5432)
-          username: username, // Usuário do Neon
-          password: password, // Senha do Neon
-          database: database, // Nome do banco no Neon
+          type: 'postgres',
+          host: host,
+          port: port,
+          username: username,
+          password: password,
+          database: database,
           autoLoadEntities: true,
-          synchronize: true, // DEV ONLY!
+          synchronize: true,
           logging: false,
-          // --- IMPORTANTE: Configuração SSL ainda é necessária para Neon ---
           ssl: {
-            rejectUnauthorized: false, // Necessário para a maioria das conexões com Neon
+            rejectUnauthorized: false,
           }
-          // Não usamos a propriedade 'url' neste caso
         };
       },
     }),
-    // Restante da configuração (GraphQLModule, ProdutosModule, etc.)
     GraphQLModule.forRoot<ApolloDriverConfig>({
       driver: ApolloDriver,
       autoSchemaFile: join(process.cwd(), 'src/schema.gql'),
@@ -56,7 +52,7 @@ import { ProdutosModule } from './produtos/produtos.module'; // Verifique se o c
       introspection: true,
     }),
     ProdutosModule,
-    // Outros módulos...
+    SeedModule, // <<< ADICIONAR O SEED MODULE AQUI
   ],
   controllers: [],
   providers: [],
