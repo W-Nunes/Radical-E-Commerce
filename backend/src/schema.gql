@@ -16,6 +16,9 @@ type Produto {
   imagemUrlPrincipal: String
   nome: String!
   preco: Float!
+
+  """Quantidade atual em estoque"""
+  quantidadeEstoque: Int!
   sku: String!
 }
 

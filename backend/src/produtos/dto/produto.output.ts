@@ -38,4 +38,9 @@ export class ProdutoOutput {
 
   @Field(() => Boolean)
   emEstoque: boolean;
+
+  @Field(() => Int, { description: 'Quantidade atual em estoque' }) // Expõe como Int no GraphQL
+  quantidadeEstoque: number; // O tipo TypeScript é number
+  
 }
+

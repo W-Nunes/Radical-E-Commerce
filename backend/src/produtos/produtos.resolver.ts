@@ -41,10 +41,6 @@ export class ProdutosResolver {
         // Verificação de segurança: a categoria deveria sempre existir devido ao nullable:false
         if (!produto.categoria) {
            this.logger.error(`Produto ${produto.id} (${produto.nome}) está sem categoria associada no banco! Pulando este produto no resultado.`);
-           // Lançar um erro aqui pararia toda a query. Retornar null/undefined ou filtrar
-           // pode ser uma opção dependendo do requisito, mas indica um problema nos dados.
-           // Por segurança, vamos pular este produto problemático (requer ajuste no tipo de retorno se filtrar)
-           // Melhor ainda: lançar erro para indicar inconsistência
             throw new Error(`Inconsistência de dados: Produto ${produto.id} sem categoria obrigatória.`);
         }
 
@@ -57,6 +53,7 @@ export class ProdutosResolver {
             sku: produto.sku,
             imagemUrlPrincipal: produto.imagemUrlPrincipal, // Já é string | null
             emEstoque: produto.quantidadeEstoque > 0,
+            quantidadeEstoque: produto.quantidadeEstoque, // <<< ADICIONADO AQUI
             // Mapeia a categoria para CategoriaOutput
             categoria: {
                 id: produto.categoria.id,
@@ -87,8 +84,6 @@ export class ProdutosResolver {
     // Verificação de segurança para categoria
     if (!produtoEntidade.categoria) {
         this.logger.error(`Produto ${produtoEntidade.id} (${produtoEntidade.nome}) está sem categoria associada no banco!`);
-        // Como a query GraphQL espera um ProdutoOutput ou null, retornar null aqui pode ser uma opção,
-        // mas indica um sério problema nos dados. Lançar um erro é mais informativo sobre a inconsistência.
          throw new Error(`Inconsistência de dados: Produto ${produtoEntidade.id} sem categoria obrigatória.`);
     }
 
@@ -101,6 +96,7 @@ export class ProdutosResolver {
         sku: produtoEntidade.sku,
         imagemUrlPrincipal: produtoEntidade.imagemUrlPrincipal,
         emEstoque: produtoEntidade.quantidadeEstoque > 0,
+        quantidadeEstoque: produtoEntidade.quantidadeEstoque, // <<< ADICIONADO AQUI
         // Mapeia a categoria para CategoriaOutput
         categoria: {
             id: produtoEntidade.categoria.id,
