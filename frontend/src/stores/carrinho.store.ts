@@ -120,4 +120,8 @@ export const useCarrinhoStore = defineStore('carrinho', () => {
     atualizarQuantidade, // Action
     limparCarrinho, // Action
   }
-});
+},
+{
+    persist: true, // Habilita a persistência padrão (usa localStorage)
+  }
+);

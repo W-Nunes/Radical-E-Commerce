@@ -2,6 +2,7 @@ import { createApp, provide, h } from 'vue'
 import { DefaultApolloClient } from '@vue/apollo-composable'
 import { ApolloClient, createHttpLink, InMemoryCache } from '@apollo/client/core'
 import { createPinia } from 'pinia'
+import piniaPluginPersistedstate from 'pinia-plugin-persistedstate'
 import router from './router' // <<< 1. IMPORTAR O ROUTER
 import './style.css'
 import App from './App.vue'
@@ -19,7 +20,8 @@ const apolloClient = new ApolloClient({
 
 // --- Criar instância do Pinia ---
 const pinia = createPinia() // <<< 2. CRIAR A INSTÂNCIA
-// --------------------------------
+pinia.use(piniaPluginPersistedstate) // <<< 2. USAR O PLUGIN AQUI
+
 
 
 const app = createApp({
