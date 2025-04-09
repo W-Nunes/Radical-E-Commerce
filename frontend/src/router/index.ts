@@ -15,8 +15,17 @@ const routes: Array<RouteRecordRaw> = [
     path: '/produto/:id', // Exemplo de rota dinâmica
     name: 'DetalheProduto',
     component: () => import('../views/DetalheProduto.vue') // Exemplo com lazy loading
-   }
+   },
+
+   {
+    path: '/carrinho', // URL para acessar o carrinho
+    name: 'Carrinho', // Nome da rota
+    // Componente da página do carrinho (usando lazy loading)
+    component: () => import('../views/PaginaCarrinho.vue') // Criaremos este arquivo a seguir
+  }
+
 ];
+
 
 // Cria a instância do roteador
 const router = createRouter({

@@ -1,6 +1,7 @@
 import { createApp, provide, h } from 'vue'
 import { DefaultApolloClient } from '@vue/apollo-composable'
 import { ApolloClient, createHttpLink, InMemoryCache } from '@apollo/client/core'
+import { createPinia } from 'pinia'
 import router from './router' // <<< 1. IMPORTAR O ROUTER
 import './style.css'
 import App from './App.vue'
@@ -15,6 +16,12 @@ const apolloClient = new ApolloClient({
   cache,
 })
 
+
+// --- Criar instância do Pinia ---
+const pinia = createPinia() // <<< 2. CRIAR A INSTÂNCIA
+// --------------------------------
+
+
 const app = createApp({
   setup () {
     provide(DefaultApolloClient, apolloClient)
@@ -23,5 +30,6 @@ const app = createApp({
 })
 
 app.use(router) // <<< 2. USAR O ROUTER NA APLICAÇÃO
+app.use(pinia)
 
 app.mount('#app')

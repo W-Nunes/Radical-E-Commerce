@@ -57,6 +57,8 @@
 import { useQuery } from '@vue/apollo-composable';
 import { gql } from '@apollo/client/core';
 
+import { useCarrinhoStore } from '@/stores/carrinho.store';
+
 // Define as interfaces para tipagem forte (espelham os DTOs do backend)
 interface Categoria {
   id: string;
@@ -101,6 +103,8 @@ const BUSCAR_PRODUTOS_QUERY = gql`
 // Executa a query ao montar o componente
 const { result: resultado, loading: carregando, error: erro } = useQuery<ResultadoQueryProdutos>(BUSCAR_PRODUTOS_QUERY);
 
+const carrinhoStore = useCarrinhoStore();
+
 // Função auxiliar para formatar o preço
 function formatarPreco(valor: number): string {
   if (typeof valor !== 'number') return '0,00';
@@ -109,9 +113,16 @@ function formatarPreco(valor: number): string {
 
 // Função placeholder para adicionar ao carrinho
 function adicionarAoCarrinho(produto: Produto): void {
-  console.log('Adicionando produto ao carrinho (implementar lógica):', produto.nome);
+  //console.log('Adicionando produto ao carrinho (implementar lógica):', produto.nome);
   // Aqui você chamaria uma mutation do Apollo, ou uma action do Pinia/Vuex, etc.
-  alert(`Produto ${produto.nome} adicionado! (Simulação)`);
+  //alert(`Produto ${produto.nome} adicionado! (Simulação)`);
+
+  carrinhoStore.adicionarItem({
+      id: produto.id,
+      nome: produto.nome,
+      preco: produto.preco,
+      imagemUrlPrincipal: produto.imagemUrlPrincipal ?? null // Garante null se for undefined
+  });
 }
 </script>
 

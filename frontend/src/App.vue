@@ -1,8 +1,19 @@
 <template>
   <div>
-    <header class="bg-gray-800 text-white p-4 text-center">
-       <h1 class="text-2xl font-bold">🛹 Loja Radical 🤘</h1>
-       </header>
+
+    <header class="bg-gray-800 text-white p-4 flex justify-between items-center"> 
+       <h1 class="text-2xl font-bold">
+          <router-link to="/">🛹 Loja Radical 🤘</router-link> 
+       </h1>
+       <div>
+          <nav>
+            <span class="text-lg">
+                🛒 Carrinho ({{ carrinhoStore.totalItens }})
+            </span>
+            <router-link to="/carrinho" class="hover:text-gray-300">Ver Carrinho</router-link>
+            </nav>
+       </div>
+    </header>
 
     <main>
       <router-view />
@@ -15,8 +26,8 @@
 </template>
 
 <script setup lang="ts">
-// Não precisamos mais importar ListaProdutos aqui
-// import ListaProdutos from './components/ListaProdutos.vue';
+  import { useCarrinhoStore } from '@/stores/carrinho.store';
+  const carrinhoStore = useCarrinhoStore();
 </script>
 
 <style scoped>

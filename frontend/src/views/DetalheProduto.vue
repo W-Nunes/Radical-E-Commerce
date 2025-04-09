@@ -71,6 +71,8 @@ import { useRoute } from 'vue-router';
 import { useQuery } from '@vue/apollo-composable';
 import { gql } from '@apollo/client/core';
 
+import { useCarrinhoStore } from '@/stores/carrinho.store';
+
 // --- Interfaces (podem ser movidas para um arquivo .d.ts depois) ---
 interface Categoria {
   id: string;
@@ -163,6 +165,8 @@ watch(
   },
   { immediate: true } // Executa o watch imediatamente ao montar o componente
 );
+
+const carrinhoStore = useCarrinhoStore();
 // -----------------------------
 
 // --- Funções Auxiliares ---
@@ -173,8 +177,12 @@ function formatarPreco(valor: number): string {
 
 // Placeholder para adicionar ao carrinho (pode ser diferente da lista)
 function adicionarAoCarrinho(item: ProdutoDetalhe): void {
-  console.log('Adicionando item detalhado ao carrinho:', item.nome);
-  alert(`Produto ${item.nome} adicionado! (Simulação)`);
+  carrinhoStore.adicionarItem({
+      id: item.id,
+      nome: item.nome,
+      preco: item.preco,
+      imagemUrlPrincipal: item.imagemUrlPrincipal ?? null // Garante null se for undefined
+  });
   // Chamar store Pinia/Vuex aqui
 }
 // -----------------------------
