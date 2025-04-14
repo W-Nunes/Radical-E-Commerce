@@ -1,4 +1,5 @@
 <template>
+
   <div> <header class="bg-gray-800 text-white p-4 flex justify-between items-center">
       <h1 class="text-xl sm:text-2xl font-bold"> <router-link to="/">🛹 Loja Radical 🤘</router-link>
       </h1>
@@ -13,6 +14,12 @@
                 {{ carrinhoStore.totalItens }}
              </span>
           </router-link>
+          <router-link
+  to="/admin/produtos/novo"
+  class="text-sm ml-4 text-yellow-400 hover:text-yellow-200"
+>
+  Criar Produto
+</router-link>
         </nav>
 
         <div class="flex items-center space-x-2 sm:space-x-4">
@@ -62,6 +69,8 @@ const executarLogout = () => {
   authStore.limparAuthData(); // Limpa o store (e localStorage)
   router.push('/'); // Redireciona para a Home após logout
 };
+
+
 </script>
 
 <style scoped>

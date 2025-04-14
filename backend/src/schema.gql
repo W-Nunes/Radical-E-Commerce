@@ -13,10 +13,56 @@ type Categoria {
   slug: String!
 }
 
+input CriarProdutoInput {
+  """ID da Categoria à qual o produto pertence"""
+  categoriaId: ID!
+
+  """Descrição detalhada do produto (opcional)"""
+  descricao: String
+
+  """URL da imagem principal do produto (opcional)"""
+  imagemUrlPrincipal: String
+
+  """Nome do produto"""
+  nome: String!
+
+  """Preço do produto"""
+  preco: Float!
+
+  """Quantidade inicial em estoque"""
+  quantidadeEstoque: Int! = 0
+
+  """Código único de referência do produto (SKU)"""
+  sku: String!
+}
+
 """
 A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date-time format.
 """
 scalar DateTime
+
+input EditarProdutoInput {
+  """Novo ID da Categoria (opcional)"""
+  categoriaId: ID
+
+  """Nova descrição detalhada (opcional)"""
+  descricao: String
+
+  """Nova URL da imagem principal (opcional)"""
+  imagemUrlPrincipal: String
+
+  """Novo nome do produto (opcional)"""
+  nome: String
+
+  """Novo preço do produto (opcional)"""
+  preco: Float
+
+  """Nova quantidade em estoque (opcional)"""
+  quantidadeEstoque: Int
+
+  """Novo código SKU (opcional, deve ser único)"""
+  sku: String
+}
 
 input LoginInput {
   email: String!
@@ -24,6 +70,11 @@ input LoginInput {
 }
 
 type Mutation {
+  criarProduto(dados: CriarProdutoInput!): Produto!
+
+  """Atualiza um produto existente (requer autenticação)."""
+  editarProduto(dados: EditarProdutoInput!, id: ID!): Produto!
+
   """Autentica um usuário e retorna um token JWT."""
   login(dadosLogin: LoginInput!): AuthPayload!
 
@@ -46,23 +97,12 @@ type Produto {
 }
 
 type Query {
-  """Busca todas as categorias."""
   categorias: [Categoria!]!
 
   """Retorna dados do usuário logado."""
   meuPerfil: Usuario!
-
-  """Busca um único produto pelo seu ID."""
-  produto(
-    """ID (UUID) do produto a ser buscado"""
-    id: ID!
-  ): Produto
-
-  """Busca todos os produtos, com filtro opcional por slug da categoria."""
-  produtos(
-    """Slug da categoria para filtrar os produtos"""
-    categoriaSlug: String
-  ): [Produto!]!
+  produto(id: ID!): Produto
+  produtos(categoriaSlug: String): [Produto!]!
 }
 
 input RegistroInput {

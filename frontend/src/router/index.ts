@@ -39,6 +39,22 @@ const routes: Array<RouteRecordRaw> = [
     meta: { requiresGuest: true } // <<< Apenas para não logados
   },
 
+    // --- ROTAS ADMINISTRATIVAS ---
+    {
+      path: '/admin/produtos/novo',
+      name: 'AdminCriarProduto',
+      component: () => import('../views/admin/AdminProductCreatePage.vue'), // <<< Criaremos este
+      meta: { requiresAuth: true } // <<< Rota protegida!
+    },
+
+    {
+      path: '/admin/produtos/editar/:id', // Rota com parâmetro :id
+      name: 'AdminEditarProduto',
+      component: () => import('../views/admin/AdminProductEditPage.vue'), // <<< Criaremos este
+      props: true, // <<< IMPORTANTE: Passa o :id da URL como prop para o componente
+      meta: { requiresAuth: true } // <<< Rota protegida
+    },
+
   // --- Exemplo de Rota Protegida (adicionar depois um componente real) ---
   // {
   //   path: '/perfil',
