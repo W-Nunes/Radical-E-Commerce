@@ -2,10 +2,33 @@
 # THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
 # ------------------------------------------------------
 
+type AuthPayload {
+  accessToken: String!
+  usuario: Usuario!
+}
+
 type Categoria {
   id: ID!
   nome: String!
   slug: String!
+}
+
+"""
+A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date-time format.
+"""
+scalar DateTime
+
+input LoginInput {
+  email: String!
+  password: String!
+}
+
+type Mutation {
+  """Autentica um usuário e retorna um token JWT."""
+  login(dadosLogin: LoginInput!): AuthPayload!
+
+  """Registra um novo usuário."""
+  registrar(dadosRegistro: RegistroInput!): Usuario!
 }
 
 type Produto {
@@ -26,6 +49,9 @@ type Query {
   """Busca todas as categorias."""
   categorias: [Categoria!]!
 
+  """Retorna os dados do usuário logado (requer token)."""
+  meuPerfil: Usuario!
+
   """Busca um único produto pelo seu ID."""
   produto(
     """ID (UUID) do produto a ser buscado"""
@@ -37,4 +63,17 @@ type Query {
     """Slug da categoria para filtrar os produtos"""
     categoriaSlug: String
   ): [Produto!]!
+}
+
+input RegistroInput {
+  email: String!
+  nome: String!
+  password: String!
+}
+
+type Usuario {
+  criadoEm: DateTime!
+  email: String!
+  id: ID!
+  nome: String!
 }

@@ -3,9 +3,11 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { GraphQLModule } from '@nestjs/graphql';
 import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
+import { PassportModule } from '@nestjs/passport'
 import { join } from 'path';
 import { ProdutosModule } from './produtos/produtos.module';
 import { SeedModule } from './seed/seed.module'; // <<< IMPORTAR O SEED MODULE
+import { AuthModule } from './auth/auth.module';
 
 @Module({
   imports: [
@@ -13,9 +15,12 @@ import { SeedModule } from './seed/seed.module'; // <<< IMPORTAR O SEED MODULE
       isGlobal: true,
       envFilePath: '.env',
     }),
+    
+    PassportModule.register({ defaultStrategy: 'jwt' }),
+
     TypeOrmModule.forRootAsync({
       // ... (configuração TypeORM como antes) ...
-      imports: [ConfigModule],
+      //imports: [ConfigModule],
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => {
         const host = configService.get<string>('PGHOST');
@@ -53,6 +58,7 @@ import { SeedModule } from './seed/seed.module'; // <<< IMPORTAR O SEED MODULE
     }),
     ProdutosModule,
     SeedModule, // <<< ADICIONAR O SEED MODULE AQUI
+    AuthModule, 
   ],
   controllers: [],
   providers: [],
