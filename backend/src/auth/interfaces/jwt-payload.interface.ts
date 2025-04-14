@@ -1,6 +1,7 @@
 // Define o que guardaremos DENTRO do token JWT assinado
 export interface JwtPayload {
-    id: string;     // ID do usuário
+    id: string;  // ID do usuário
+    sub?: string;    
     email: string;  // Email do usuário (ou username)
     // Adicione mais dados se precisar (ex: roles)
 }

@@ -1,16 +1,16 @@
+// radical/backend/src/auth/decorators/current-user.decorator.ts
 import { createParamDecorator, ExecutionContext } from '@nestjs/common';
 import { GqlExecutionContext } from '@nestjs/graphql';
-import { UserEntity } from '../../database/entities/user.entity'; // Importe sua entidade de usuário
+// <<< 1. Importar UserEntity do local correto
+import { UserEntity } from '../../database/entities/user.entity';
 
-// Cria um decorator chamado @CurrentUser()
+// Removido MockUser
+
 export const CurrentUser = createParamDecorator(
-  (data: unknown, context: ExecutionContext): UserEntity => {
-    // Cria o contexto GraphQL a partir do ExecutionContext padrão
+  (data: unknown, context: ExecutionContext): UserEntity => { // <<< 2. Tipo de retorno é UserEntity
     const ctx = GqlExecutionContext.create(context);
-    // Extrai o objeto 'req' do contexto GraphQL (onde o Passport anexa o usuário)
     const request = ctx.getContext().req;
-    // Retorna a propriedade 'user' anexada ao request pela JwtStrategy
-    // Se 'user' não existir, retornará undefined (o Guard deve prevenir isso)
+    // Retorna o usuário anexado pelo Passport (será UserEntity)
     return request.user;
   },
 );

@@ -1,13 +1,14 @@
+// radical/backend/src/auth/auth.resolver.ts
 import { Resolver, Mutation, Args, Query } from '@nestjs/graphql';
-import { UseGuards, UsePipes, ValidationPipe, InternalServerErrorException, Logger, UnauthorizedException } from '@nestjs/common';
+import { UseGuards, UsePipes, ValidationPipe, InternalServerErrorException, Logger } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { RegistroInput } from './dto/registro.input';
 import { LoginInput } from './dto/login.input';
 import { AuthPayload } from './dto/auth.payload';
 import { UserOutput } from './dto/user.output';
-import { JwtAuthGuard } from './guards/jwt-auth.guard';
+import { JwtAuthGuard } from './guards/jwt-auth.guard'; // Usa o guard customizado
 import { CurrentUser } from './decorators/current-user.decorator';
-import { UserEntity } from '../database/entities/user.entity';
+import { UserEntity } from '../database/entities/user.entity'; // <<< Importa a entidade real
 
 @Resolver(() => UserOutput)
 export class AuthResolver {
@@ -15,19 +16,17 @@ export class AuthResolver {
 
   constructor(private readonly authService: AuthService) {}
 
-  // --- MUTATIONS registrar e login (mantidas como no seu código) ---
   @Mutation(() => UserOutput, { name: 'registrar', description: 'Registra um novo usuário.' })
   @UsePipes(ValidationPipe)
   async registrar(
     @Args('dadosRegistro') dadosRegistro: RegistroInput,
   ): Promise<UserOutput> {
+    this.logger.debug('[Resolver Radical] Recebida mutation registrar');
+    // AuthService.registrar retorna Omit<UserEntity, 'passwordHash'>
     const usuarioRegistrado = await this.authService.registrar(dadosRegistro);
-    return {
-        id: usuarioRegistrado.id,
-        nome: usuarioRegistrado.nome,
-        email: usuarioRegistrado.email,
-        criadoEm: usuarioRegistrado.criadoEm,
-    };
+    this.logger.debug('[Resolver Radical] Usuário registrado pelo service');
+    // Mapeia para UserOutput (tipos compatíveis)
+    return usuarioRegistrado;
   }
 
   @Mutation(() => AuthPayload, { name: 'login', description: 'Autentica um usuário e retorna um token JWT.' })
@@ -35,36 +34,33 @@ export class AuthResolver {
   async login(
     @Args('dadosLogin') dadosLogin: LoginInput,
   ): Promise<AuthPayload> {
+     this.logger.debug('[Resolver Radical] Recebida mutation login');
       const payloadLogin = await this.authService.login(dadosLogin);
+      this.logger.debug('[Resolver Radical] Login realizado pelo service');
       return payloadLogin;
   }
-  // --- FIM MUTATIONS ---
 
-
-  @Query(() => UserOutput, { name: 'meuPerfil', description: 'Retorna os dados do usuário logado (requer token).' })
-  @UseGuards(JwtAuthGuard)
+  @Query(() => UserOutput, { name: 'meuPerfil', description: 'Retorna dados do usuário logado.' })
+  @UseGuards(JwtAuthGuard) // Usa o guard customizado
   meuPerfil(
+    // <<< CORRIGIDO: Usa UserEntity aqui
     @CurrentUser() usuario: UserEntity,
-    // @Context() context: any // Pode descomentar se precisar inspecionar o contexto GQL
   ): UserOutput {
-    // --- LOGS DE DEBUG ADICIONAIS ---
-    this.logger.debug(`[Resolver meuPerfil] Query acessada.`); // Log geral de entrada
-    // this.logger.verbose(`[Resolver meuPerfil] Contexto GQL Keys: ${JSON.stringify(Object.keys(context || {}))}`); // Log opcional do contexto
-    this.logger.debug(`[Resolver meuPerfil] Usuário recebido via @CurrentUser: ${usuario?.email} (ID: ${usuario?.id})`);
-    this.logger.verbose(`[Resolver meuPerfil] Objeto Usuário completo injetado: ${JSON.stringify(usuario)}`); // Log opcional do objeto completo
-    // -------------------------------
+    this.logger.debug(`[Resolver Radical meuPerfil] Query acessada.`);
+    this.logger.debug(`[Resolver Radical meuPerfil] Usuário recebido via @CurrentUser: ${usuario?.email} (ID: ${usuario?.id})`);
 
     if (!usuario) {
-         this.logger.error('[Resolver meuPerfil] CurrentUser decorator retornou undefined mesmo após JwtAuthGuard.');
+         this.logger.error('[Resolver Radical meuPerfil] CurrentUser retornou undefined mesmo após JwtAuthGuard!');
          throw new InternalServerErrorException('Erro interno ao obter dados do usuário logado.');
     }
 
-    // Mapeia entidade para DTO de saída
+    // Mapeia UserEntity para UserOutput
     return {
         id: usuario.id,
         nome: usuario.nome,
         email: usuario.email,
         criadoEm: usuario.criadoEm
+        // Mapeie outros campos se necessário
     };
   }
 }
