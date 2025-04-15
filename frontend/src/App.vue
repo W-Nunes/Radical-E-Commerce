@@ -1,25 +1,27 @@
 <template>
-
-  <div> <header class="bg-gray-800 text-white p-4 flex justify-between items-center">
-      <h1 class="text-xl sm:text-2xl font-bold"> <router-link to="/">🛹 Loja Radical 🤘</router-link>
+  <div>
+    <header class="bg-gray-900   text-gray-200 p-4 flex justify-between items-center shadow-lg">
+      <h1 class="text-xl sm:text-2xl font-bold">
+        <router-link to="/" class="hover:text-azul-radical transition-colors duration-200">🛹 Loja Radical 🤘</router-link>
       </h1>
 
       <div class="flex items-center space-x-4 sm:space-x-6">
         <nav class="flex items-center space-x-2 sm:space-x-4">
-          <span class="text-sm sm:text-base hidden sm:inline"> 🛒 ({{ carrinhoStore.totalItens }})
+          <span class="text-sm sm:text-base hidden sm:inline">
+             🛒 ({{ carrinhoStore.totalItens }})
           </span>
-          <router-link to="/carrinho" class="hover:text-gray-300 text-sm sm:text-base whitespace-nowrap">
+          <router-link to="/carrinho" class="hover:text-azul-radical text-sm sm:text-base whitespace-nowrap transition-colors duration-200">
              Ver Carrinho
-             <span v-if="carrinhoStore.totalItens > 0" class="ml-1 inline-block bg-red-500 text-white text-xs rounded-full h-4 w-4 text-center leading-4">
-                {{ carrinhoStore.totalItens }}
+             <span v-if="carrinhoStore.totalItens > 0" class="ml-1 inline-block bg-vermelho-radical text-white text-xs rounded-full h-4 w-4 text-center leading-4 animate-pulse"> {{ carrinhoStore.totalItens }}
              </span>
           </router-link>
           <router-link
-  to="/admin/produtos/novo"
-  class="text-sm ml-4 text-yellow-400 hover:text-yellow-200"
->
-  Criar Produto
-</router-link>
+            v-if="authStore.isAuthenticated"
+            to="/admin/produtos/novo"
+            class="text-sm ml-4 text-yellow-500 hover:text-yellow-300 transition-colors duration-200"
+          >
+            Criar Produto
+          </router-link>
         </nav>
 
         <div class="flex items-center space-x-2 sm:space-x-4">
@@ -27,64 +29,66 @@
             <span class="text-sm hidden md:inline">Olá, {{ authStore.usuarioLogado?.nome }}!</span>
             <button
               @click="executarLogout"
-              class="bg-red-500 hover:bg-red-700 text-white text-xs sm:text-sm font-bold py-1 px-2 sm:px-3 rounded focus:outline-none focus:shadow-outline"
+              class="bg-vermelho-radical hover:bg-opacity-80 transition-colors duration-200 text-white text-xs sm:text-sm font-bold py-1 px-2 sm:px-3 rounded focus:outline-none focus:shadow-outline"
             >
               Sair
             </button>
           </template>
           <template v-else>
-            <router-link to="/login" class="hover:text-gray-300 text-sm">Login</router-link>
-            <router-link to="/registrar" class="bg-blue-500 hover:bg-blue-700 text-white text-xs sm:text-sm font-bold py-1 px-2 sm:px-3 rounded focus:outline-none focus:shadow-outline">Registrar</router-link>
+            <router-link to="/login" class="hover:text-azul-radical text-sm transition-colors duration-200">Login</router-link>
+            <router-link
+              to="/registrar"
+              class="bg-azul-radical hover:bg-opacity-80 transition-colors duration-200 text-white text-xs sm:text-sm font-bold py-1 px-2 sm:px-3 rounded focus:outline-none focus:shadow-outline"
+              >Registrar
+            </router-link>
           </template>
-          </div>
+        </div>
 
       </div>
     </header>
 
-    <main class="p-4"> <router-view v-slot="{ Component }">
+    <main class="p-4">
+       <router-view v-slot="{ Component }">
         <transition name="fade" mode="out-in">
           <component :is="Component" />
         </transition>
       </router-view>
     </main>
 
-    <footer class="bg-gray-200 text-gray-700 p-4 text-center mt-8">
-        © {{ new Date().getFullYear() }} Loja Radical - Todos os direitos reservados.
-      </footer>
+    <footer class="bg-gray-800 text-gray-400 p-4 text-center mt-8 text-xs"> © {{ new Date().getFullYear() }} Loja Radical - Todos os direitos reservados.
+     </footer>
   </div>
 </template>
 
 <script setup lang="ts">
-import { useRouter } from 'vue-router'; // <<< 1. Importar useRouter
+import { useRouter } from 'vue-router';
 import { useCarrinhoStore } from '@/stores/carrinho.store';
-import { useAuthStore } from '@/stores/auth.store'; // <<< 2. Importar useAuthStore
+import { useAuthStore } from '@/stores/auth.store';
+import { useToast } from 'vue-toastification'; // <<< 1. IMPORTAR useToast
 
 const carrinhoStore = useCarrinhoStore();
-const authStore = useAuthStore(); // <<< 3. Obter instância do authStore
-const router = useRouter();   // <<< 4. Obter instância do router
+const authStore = useAuthStore();
+const router = useRouter();
+const toast = useToast(); // <<< 2. OBTER instância do toast
 
-// <<< 5. Adicionar função de Logout
 const executarLogout = () => {
   console.log('[App] Executando logout...');
-  authStore.limparAuthData(); // Limpa o store (e localStorage)
-  router.push('/'); // Redireciona para a Home após logout
+  authStore.limparAuthData();
+  toast.info('Logout realizado com sucesso!'); // <<< 3. CHAMAR toast AQUI
+  router.push('/');
 };
-
 
 </script>
 
 <style scoped>
-/* Estilos específicos para o layout do App, se necessário */
+/* SEU CSS SCOPED CONTINUA O MESMO */
 main {
-  min-height: calc(100vh - 10rem); /* Exemplo para empurrar o footer para baixo */
+  min-height: calc(100vh - 10rem);
 }
-
-/* Estilos para transição de página (opcional) */
 .fade-enter-active,
 .fade-leave-active {
   transition: opacity 0.2s ease;
 }
-
 .fade-enter-from,
 .fade-leave-to {
   opacity: 0;

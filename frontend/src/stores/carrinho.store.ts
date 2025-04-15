@@ -4,7 +4,7 @@ import { ref, computed } from 'vue'; // Importamos ref e computed do Vue
 // --- Interface para um Item no Carrinho ---
 // Precisamos definir como será um item DENTRO do carrinho
 // Inclui os dados do produto que queremos guardar + a quantidade
-interface ProdutoParaCarrinho {
+export interface ProdutoParaCarrinho {
     id: string;
     nome: string;
     preco: number;

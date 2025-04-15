@@ -9,6 +9,12 @@ import { ApolloClient, createHttpLink, InMemoryCache, ApolloLink } from '@apollo
 import { setContext } from '@apollo/client/link/context'; // <<< Importar setContext
 // ---------------------
 
+// --- Vue Toastification Imports ---
+import Toast, { type PluginOptions, POSITION } from "vue-toastification";
+// Importe o CSS (ou o tema que preferir)
+import "vue-toastification/dist/index.css";
+// --------------------------------
+
 import router from './router';
 import { useAuthStore } from '@/stores/auth.store'; // <<< Importar o authStore
 import './style.css';
@@ -68,4 +74,24 @@ const app = createApp({
 
 app.use(pinia); // Usa Pinia
 app.use(router); // Usa Vue Router
+
+// --- Configuração Vue Toastification ---
+const toastOptions: PluginOptions = {
+  // Você pode definir opções padrão aqui
+  position: POSITION.TOP_RIGHT, // Posição na tela
+  timeout: 4000, // Tempo em milissegundos (4 segundos)
+  closeOnClick: true,
+  pauseOnFocusLoss: true,
+  pauseOnHover: true,
+  draggable: true,
+  draggablePercent: 0.6,
+  showCloseButtonOnHover: false,
+  hideProgressBar: false,
+  closeButton: "button",
+  icon: true, // Mostra ícones padrão (sucesso, erro, etc.)
+  rtl: false
+};
+app.use(Toast, toastOptions); // <<< Registrar o plugin com as opções
+// -----------------------------------
+
 app.mount('#app'); // Monta a aplicação
