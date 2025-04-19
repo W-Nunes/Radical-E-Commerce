@@ -1,12 +1,13 @@
 // radical/backend/src/produtos/produtos.resolver.ts
-import { Resolver, Query, Args, ID, Mutation } from '@nestjs/graphql';
+// --- CORREÇÃO AQUI: Remover Boolean da importação ---
+import { Resolver, Query, Args, ID, Mutation, ResolveField, Parent, Int, Float } from '@nestjs/graphql';
+// --- FIM CORREÇÃO ---
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, Not } from 'typeorm';
 import { ProdutoEntity } from '../database/entities/produto.entity';
 import { CategoriaEntity } from '../database/entities/categoria.entity';
 import { ProdutoOutput } from './dto/produto.output';
 import { CategoriaOutput } from './dto/categoria.output';
-// --- Imports Corrigidos/Adicionados ---
 import {
   NotFoundException,
   Logger,
@@ -20,221 +21,113 @@ import {
 import { CriarProdutoInput } from './dto/criar-produto.input';
 import { EditarProdutoInput } from './dto/editar-produto.input';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
-// ------------------------------------
+import { ProdutosService } from './produtos.service'; // Importar ProdutosService
 
 @Resolver(() => ProdutoOutput)
 export class ProdutosResolver {
   private readonly logger = new Logger(ProdutosResolver.name);
 
   constructor(
-    @InjectRepository(ProdutoEntity)
-    private readonly produtoRepository: Repository<ProdutoEntity>,
-    @InjectRepository(CategoriaEntity)
-    private readonly categoriaRepository: Repository<CategoriaEntity>,
+    // Injetar apenas o serviço
+    private readonly produtosService: ProdutosService,
   ) {}
 
-  // --- QUERIES (Mantidas como estavam) ---
-  @Query(() => [ProdutoOutput], { name: 'produtos', /*...*/ })
+  // --- QUERIES ---
+  @Query(() => [ProdutoOutput], { name: 'produtos' })
   async buscarTodosOsProdutos(
-    @Args('categoriaSlug', { type: () => String, nullable: true, /*...*/ }) categoriaSlug?: string,
-  ): Promise<ProdutoOutput[]> {
-    // ... (lógica da query buscarTodosOsProdutos sem alterações) ...
+    @Args('categoriaSlug', { type: () => String, nullable: true }) categoriaSlug?: string,
+  ): Promise<ProdutoEntity[]> {
     this.logger.debug(`[buscarTodosOsProdutos] Buscando produtos ${categoriaSlug ? `para categoria slug: ${categoriaSlug}` : 'todos'}.`);
-    const queryBuilder = this.produtoRepository.createQueryBuilder('produto')
-       .leftJoinAndSelect('produto.categoria', 'categoria');
-
-    if (categoriaSlug) {
-      queryBuilder.innerJoin('produto.categoria', 'cat_filter', 'cat_filter.slug = :slug', { slug: categoriaSlug });
-    }
-
-    const produtosEntidades = await queryBuilder.getMany();
+    // ERRO AQUI (Linha 54) será corrigido ao implementar 'findAll' no ProdutosService
+    const produtosEntidades = await this.produtosService.findAll(categoriaSlug);
     this.logger.verbose(`[buscarTodosOsProdutos] Encontrados ${produtosEntidades.length} produtos.`);
-    // Usar o map corrigido
-    return produtosEntidades.map(produto => this.mapProdutoEntityToOutput(produto)).filter(p => p !== null); // Filtra nulos caso o map retorne algum
+    return produtosEntidades;
   }
 
-  @Query(() => ProdutoOutput, { name: 'produto', nullable: true, /*...*/ })
+  @Query(() => ProdutoOutput, { name: 'produto', nullable: true })
   async buscarProdutoPorId(
-    @Args('id', { type: () => ID, /*...*/ }) id: string,
-  ): Promise<ProdutoOutput | null> { // <<< Assinatura já permitia null aqui, OK
+    @Args('id', { type: () => ID }) id: string,
+  ): Promise<ProdutoEntity | null> {
     this.logger.debug(`[buscarProdutoPorId] Buscando produto com ID: ${id}`);
-    const produtoEntidade = await this.produtoRepository.findOneBy({ id });
+    // findOne já deve existir no serviço (padrão de CRUD)
+    const produtoEntidade = await this.produtosService.findOne(id);
 
     if (!produtoEntidade) {
       this.logger.warn(`[buscarProdutoPorId] Produto com ID ${id} não encontrado.`);
-      return null; // <<< Retorna null, compatível com a assinatura da Query
+      return null;
     }
     this.logger.verbose(`[buscarProdutoPorId] Produto encontrado: ${produtoEntidade.nome}`);
-    // Usa o map corrigido (que agora também retorna null)
-    return this.mapProdutoEntityToOutput(produtoEntidade);
+    return produtoEntidade;
   }
 
-  @Query(() => [CategoriaOutput], { name: 'categorias', /*...*/ })
-  async buscarCategorias(): Promise<CategoriaOutput[]> {
-     // ... (lógica da query buscarCategorias sem alterações) ...
-     this.logger.debug(`[buscarCategorias] Buscando todas as categorias.`);
-     const categorias = await this.categoriaRepository.find();
-     this.logger.verbose(`[buscarCategorias] Encontradas ${categorias.length} categorias.`);
-     return categorias;
+  @Query(() => [CategoriaOutput], { name: 'categorias' })
+  async buscarCategorias(): Promise<CategoriaEntity[]> {
+    this.logger.debug(`[buscarCategorias] Buscando todas as categorias.`);
+    // ERRO AQUI (Linha 83) será corrigido ao implementar 'findAllCategorias' no ProdutosService
+    const categorias = await this.produtosService.findAllCategorias();
+    this.logger.verbose(`[buscarCategorias] Encontradas ${categorias.length} categorias.`);
+    return categorias;
   }
 
   // --- MUTATIONS ---
-  @Mutation(() => ProdutoOutput, { name: 'criarProduto', /*...*/ })
+  @Mutation(() => ProdutoOutput, { name: 'criarProduto' })
   @UseGuards(JwtAuthGuard)
   @UsePipes(ValidationPipe)
   async criarProduto(
     @Args('dados') dados: CriarProdutoInput,
-  ): Promise<ProdutoOutput> {
-    // ... (lógica da mutation criarProduto sem alterações internas) ...
-     this.logger.log(`[criarProduto] Recebida requisição para criar produto: ${dados.nome} (SKU: ${dados.sku})`);
-
-     // 1. Validar categoria
-     this.logger.debug(`[criarProduto] Buscando categoria com ID: ${dados.categoriaId}`);
-     const categoriaEncontrada = await this.categoriaRepository.findOneBy({ id: dados.categoriaId });
-     if (!categoriaEncontrada) {
-       this.logger.warn(`[criarProduto] Categoria com ID ${dados.categoriaId} não encontrada.`);
-       throw new NotFoundException(`Categoria com ID ${dados.categoriaId} não encontrada.`);
-     }
-     this.logger.debug(`[criarProduto] Categoria encontrada: ${categoriaEncontrada.nome}`);
-
-     // 2. Validar SKU
-     this.logger.debug(`[criarProduto] Verificando SKU: ${dados.sku}`);
-     const skuExistente = await this.produtoRepository.findOneBy({ sku: dados.sku });
-     if (skuExistente) {
-          this.logger.warn(`[criarProduto] SKU ${dados.sku} já cadastrado para o produto ${skuExistente.nome}.`);
-          throw new BadRequestException(`O SKU '${dados.sku}' já está em uso.`);
-     }
-
-     // 3. Criar entidade
-     const { categoriaId, ...restanteDosDados } = dados;
-     const novoProduto = this.produtoRepository.create({
-       ...restanteDosDados,
-       categoria: categoriaEncontrada,
-     });
-     this.logger.debug(`[criarProduto] Entidade Produto criada (sem salvar): ${JSON.stringify(novoProduto)}`);
-
-     // 4. Salvar
-     const produtoSalvo = await this.produtoRepository.save(novoProduto);
-     this.logger.log(`[criarProduto] Produto '${produtoSalvo.nome}' (ID: ${produtoSalvo.id}) salvo com sucesso.`);
-
-     // 5. Mapear e retornar (usando o map corrigido)
-     // A categoria deve vir com o save ou por causa do eager:true
-     const output = this.mapProdutoEntityToOutput(produtoSalvo);
-     if (output === null) {
-         // Isso não deveria acontecer aqui se o save funcionou e a categoria é obrigatória
-         this.logger.error(`[criarProduto] Falha ao mapear produto recém-salvo para output! ID: ${produtoSalvo.id}`);
-         throw new InternalServerErrorException('Erro ao processar dados do produto salvo.');
-     }
-     return output;
+  ): Promise<ProdutoEntity> {
+    this.logger.log(`[criarProduto] Recebida requisição para criar produto: ${dados.nome} (SKU: ${dados.sku})`);
+    // ERRO AQUI (Linha 97) será corrigido ao implementar 'create' no ProdutosService
+    const produtoSalvo = await this.produtosService.create(dados);
+    this.logger.log(`[criarProduto] Produto '${produtoSalvo.nome}' (ID: ${produtoSalvo.id}) salvo com sucesso.`);
+    return produtoSalvo;
   }
 
-  @Mutation(() => ProdutoOutput, { name: 'editarProduto', description: 'Atualiza um produto existente (requer autenticação).' })
-  @UseGuards(JwtAuthGuard) // Protege a mutation
-  @UsePipes(ValidationPipe) // Valida o DTO 'dados'
+  @Mutation(() => ProdutoOutput, { name: 'editarProduto' })
+  @UseGuards(JwtAuthGuard)
+  @UsePipes(ValidationPipe)
   async editarProduto(
-    // Recebe o ID como argumento separado
-    @Args('id', { type: () => ID } /*, ParseUUIDPipe - opcional */) id: string,
-    // Recebe os dados opcionais para atualização
+    @Args('id', { type: () => ID }) id: string,
     @Args('dados') dados: EditarProdutoInput,
-  ): Promise<ProdutoOutput> {
+  ): Promise<ProdutoEntity> {
     this.logger.log(`[editarProduto] Recebida requisição para editar produto ID: ${id}`);
     this.logger.verbose(`[editarProduto] Dados recebidos: ${JSON.stringify(dados)}`);
-
-    // 1. Buscar o produto existente (e sua categoria atual)
-    // Usamos findOneOrFail para lançar NotFoundException automaticamente se não achar
-    // Ou usamos findOne e checamos manualmente
-    const produtoEncontrado = await this.produtoRepository.findOne({
-        where: { id },
-        relations: { categoria: true } // Carrega a relação para o mapeamento final
-    });
-
-    if (!produtoEncontrado) {
-        this.logger.warn(`[editarProduto] Produto com ID ${id} não encontrado para edição.`);
-        throw new NotFoundException(`Produto com ID ${id} não encontrado.`);
-    }
-    this.logger.debug(`[editarProduto] Produto encontrado: ${produtoEncontrado.nome}`);
-
-    // 2. Verificar e atualizar a categoria, se fornecida
-    if (dados.categoriaId) {
-      this.logger.debug(`[editarProduto] Buscando nova categoria com ID: ${dados.categoriaId}`);
-      const novaCategoria = await this.categoriaRepository.findOneBy({ id: dados.categoriaId });
-      if (!novaCategoria) {
-        this.logger.warn(`[editarProduto] Nova categoria com ID ${dados.categoriaId} não encontrada.`);
-        throw new NotFoundException(`Nova categoria com ID ${dados.categoriaId} não encontrada.`);
-      }
-      produtoEncontrado.categoria = novaCategoria; // Atualiza a relação
-      this.logger.debug(`[editarProduto] Categoria do produto atualizada para: ${novaCategoria.nome}`);
-    }
-
-    // 3. Verificar e atualizar o SKU, checando conflitos
-    if (dados.sku && dados.sku !== produtoEncontrado.sku) {
-        this.logger.debug(`[editarProduto] Verificando conflito para novo SKU: ${dados.sku}`);
-        const conflitoSku = await this.produtoRepository.findOne({
-            where: {
-                sku: dados.sku,
-                id: Not(id) // Verifica se o SKU existe em OUTRO produto que não seja o atual
-            }
-        });
-        if (conflitoSku) {
-             this.logger.warn(`[editarProduto] Novo SKU ${dados.sku} já está em uso pelo produto ${conflitoSku.id}.`);
-             throw new BadRequestException(`O novo SKU '${dados.sku}' já está em uso por outro produto.`);
-        }
-        produtoEncontrado.sku = dados.sku; // Atualiza o SKU
-         this.logger.debug(`[editarProduto] SKU do produto atualizado para: ${dados.sku}`);
-    }
-
-    // 4. Atualizar outros campos fornecidos (exceto categoriaId e sku que já tratamos)
-    // Usar Object.assign pode ser perigoso se o DTO tiver campos extras.
-    // É mais seguro atribuir campo a campo se eles existirem nos 'dados'.
-    if (dados.nome !== undefined) produtoEncontrado.nome = dados.nome;
-    if (dados.descricao !== undefined) produtoEncontrado.descricao = dados.descricao; // Permite setar para null
-    if (dados.preco !== undefined) produtoEncontrado.preco = dados.preco;
-    if (dados.quantidadeEstoque !== undefined) produtoEncontrado.quantidadeEstoque = dados.quantidadeEstoque;
-    if (dados.imagemUrlPrincipal !== undefined) produtoEncontrado.imagemUrlPrincipal = dados.imagemUrlPrincipal; // Permite setar para null
-
-    // 5. Salvar as alterações
-    // O método save do TypeORM atualiza a entidade se ela já existe (baseado no ID)
-    const produtoAtualizado = await this.produtoRepository.save(produtoEncontrado);
+    // ERRO AQUI (Linha 113) será corrigido ao implementar 'update' no ProdutosService
+    const produtoAtualizado = await this.produtosService.update(id, dados);
     this.logger.log(`[editarProduto] Produto '${produtoAtualizado.nome}' (ID: ${id}) atualizado com sucesso.`);
-
-    // 6. Mapear para o Output e retornar
-    const output = this.mapProdutoEntityToOutput(produtoAtualizado);
-     if (output === null) {
-         this.logger.error(`[editarProduto] Falha ao mapear produto recém-atualizado para output! ID: ${id}`);
-         throw new InternalServerErrorException('Erro ao processar dados do produto atualizado.');
-     }
-    return output;
+    return produtoAtualizado;
   }
 
-  // --- MÉTODO PRIVADO DE MAPEAMENTO CORRIGIDO ---
-  private mapProdutoEntityToOutput(produto: ProdutoEntity | null): ProdutoOutput | null { // <<< Assinatura permite null
-     if (!produto) {
-         this.logger.verbose(`[mapProdutoEntityToOutput] Recebido produto nulo, retornando null.`);
-         return null; // <<< Agora isso é válido
-     }
 
-     if (!produto.categoria) {
-        this.logger.error(`[mapProdutoEntityToOutput] Produto ${produto.id} (${produto.nome}) está sem categoria associada!`);
-        // Lança o erro InternalServerErrorException (agora importado)
-        throw new InternalServerErrorException(`Inconsistência de dados: Produto ${produto.id} não tem categoria associada, mas ela é obrigatória.`);
-     }
+  // --- RESOLVE FIELD ---
+  // --- CORREÇÃO AQUI: Usar @Field() sem tipo explícito para Boolean ---
+  @ResolveField('emEstoque', () => Boolean) // <- Pode manter o tipo aqui se preferir clareza
+  // ou apenas @ResolveField('emEstoque')
+  // --- FIM CORREÇÃO ---
+  getEmEstoque(@Parent() produto: ProdutoEntity): boolean { // <- O tipo TS 'boolean' é importante
+      this.logger.verbose(`[ResolveField emEstoque] Calculando para Produto ID: ${produto.id} (Estoque: ${produto.quantidadeEstoque})`);
+      // A propriedade 'quantidadeEstoque' DEVE existir na entidade ProdutoEntity
+      if (typeof produto.quantidadeEstoque !== 'number') {
+           this.logger.error(`[ResolveField emEstoque] Produto ID ${produto.id} não possui quantidadeEstoque válida!`);
+           return false; // Ou lançar erro? Retornar false é mais seguro.
+      }
+      return produto.quantidadeEstoque > 0;
+  }
 
-     // Mapeamento continua igual
-     return {
-         id: produto.id,
-         nome: produto.nome,
-         descricao: produto.descricao,
-         preco: produto.preco,
-         sku: produto.sku,
-         imagemUrlPrincipal: produto.imagemUrlPrincipal,
-         emEstoque: produto.quantidadeEstoque > 0,
-         quantidadeEstoque: produto.quantidadeEstoque,
-         categoria: {
-             id: produto.categoria.id,
-             nome: produto.categoria.nome,
-             slug: produto.categoria.slug,
-         }
-     };
-   }
+  // Exemplo ResolveField para Categoria (manter se necessário e ajustar)
+  /*
+  @ResolveField('categoria', () => CategoriaOutput)
+  async getCategoria(@Parent() produto: ProdutoEntity): Promise<CategoriaOutput> {
+      this.logger.verbose(`[ResolveField categoria] Buscando para Produto ID: ${produto.id}`);
+      if (produto.categoria) {
+          // Assumindo CategoriaEntity tem id, nome, slug
+          return { id: produto.categoria.id, nome: produto.categoria.nome, slug: produto.categoria.slug };
+      }
+      // Implementar busca da categoria no serviço se não vier na relação
+      const categoria = await this.produtosService.findCategoriaForProduto(produto.id);
+      if (!categoria) throw new InternalServerErrorException(`Categoria não encontrada para produto ${produto.id}`);
+      return { id: categoria.id, nome: categoria.nome, slug: categoria.slug };
+  }
+  */
 
 } // Fim da classe ProdutosResolver

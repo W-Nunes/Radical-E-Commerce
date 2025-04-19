@@ -1,36 +1,37 @@
 <template>
   <form @submit.prevent="onSubmit" class="space-y-4">
+
     <div>
-      <label for="nome" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Nome do Produto:</label>
+      <label for="nome" class="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">Nome do Produto:</label>
       <input type="text" id="nome" v-model="formData.nome" required
-             class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white">
-    </div>
+             class="appearance-none block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-azul-radical dark:focus:ring-offset-gray-800 focus:border-azul-radical/0 sm:text-sm bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white">
+             </div>
 
     <div>
-      <label for="sku" class="block text-sm font-medium text-gray-700 dark:text-gray-300">SKU:</label>
+      <label for="sku" class="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">SKU:</label>
       <input type="text" id="sku" v-model="formData.sku" required
-             class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white">
-      </div>
+             class="appearance-none block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-azul-radical dark:focus:ring-offset-gray-800 focus:border-azul-radical/0 sm:text-sm bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white">
+             </div>
 
     <div>
-      <label for="preco" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Preço (R$):</label>
+      <label for="preco" class="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">Preço (R$):</label>
       <input type="number" id="preco" v-model.number="formData.preco" required step="0.01" min="0.01"
-             class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white">
-    </div>
+             class="appearance-none block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-azul-radical dark:focus:ring-offset-gray-800 focus:border-azul-radical/0 sm:text-sm bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white">
+             </div>
 
     <div>
-      <label for="quantidadeEstoque" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Estoque:</label>
+      <label for="quantidadeEstoque" class="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">Estoque:</label>
       <input type="number" id="quantidadeEstoque" v-model.number="formData.quantidadeEstoque" required min="0" step="1"
-             class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white">
-    </div>
+             class="appearance-none block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-azul-radical dark:focus:ring-offset-gray-800 focus:border-azul-radical/0 sm:text-sm bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white">
+             </div>
 
     <div>
-      <label for="categoria" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Categoria:</label>
+      <label for="categoria" class="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">Categoria:</label>
       <select id="categoria" v-model="formData.categoriaId" required
-              class="mt-1 block w-full px-3 py-2 border border-gray-300 bg-white dark:bg-gray-700 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm dark:border-gray-600 dark:text-white">
-        <option disabled value="">Selecione uma categoria</option>
-        <option v-if="loadingCategorias" value="" disabled>Carregando...</option>
-        <option v-else-if="errorCategorias" value="" disabled>Erro ao carregar categorias</option>
+              class="appearance-none block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-azul-radical dark:focus:ring-offset-gray-800 focus:border-azul-radical/0 sm:text-sm bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white">
+              <option :value="null" disabled>
+             {{ loadingCategorias ? 'Carregando...' : (errorCategorias ? 'Erro!' : 'Selecione uma categoria') }}
+        </option>
         <option v-for="cat in categorias" :key="cat.id" :value="cat.id">
           {{ cat.nome }}
         </option>
@@ -39,20 +40,21 @@
     </div>
 
     <div>
-      <label for="descricao" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Descrição:</label>
-      <textarea id="descricao" v-model="formData.descricao" rows="3"
-                class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white"></textarea>
-    </div>
+      <label for="descricao" class="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">Descrição:</label>
+      <textarea id="descricao" v-model="formData.descricao" rows="4"
+                class="appearance-none block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-azul-radical dark:focus:ring-offset-gray-800 focus:border-azul-radical/0 sm:text-sm bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white"></textarea>
+                </div>
 
      <div>
-      <label for="imagemUrlPrincipal" class="block text-sm font-medium text-gray-700 dark:text-gray-300">URL da Imagem Principal:</label>
+      <label for="imagemUrlPrincipal" class="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">URL da Imagem Principal:</label>
       <input type="url" id="imagemUrlPrincipal" v-model="formData.imagemUrlPrincipal" placeholder="https://..."
-             class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white">
-    </div>
+             class="appearance-none block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-azul-radical dark:focus:ring-offset-gray-800 focus:border-azul-radical/0 sm:text-sm bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white">
+             </div>
 
     <div class="pt-4">
-      <button type="submit" :disabled="isSubmitting || loadingCategorias"
-              class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-bold text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:opacity-50">
+      <button type="submit" :disabled="isSubmitting || loadingCategorias || !formData.categoriaId"
+              class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-white dark:focus:ring-offset-gray-800 focus:ring-green-500 disabled:opacity-60 disabled:cursor-not-allowed"
+              >
          {{ isSubmitting ? 'Salvando...' : 'Salvar Produto' }}
       </button>
     </div>

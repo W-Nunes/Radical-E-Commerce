@@ -42,7 +42,7 @@
               <p class="text-gray-900 dark:text-white font-bold text-2xl mb-4">R$ {{ formatarPreco(produto.preco) }}</p>
 
               <div class="mt-auto pt-2"> <button
-                      v-if="produto.emEstoque"
+                      v-if="produto.quantidadeEstoque && produto.quantidadeEstoque > 0"
                       @click.prevent.stop="adicionarAoCarrinho(produto)" class="w-full bg-azul-radical hover:bg-opacity-80 text-white font-bold py-2 px-4 rounded transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-white dark:focus:ring-offset-gray-800 focus:ring-azul-radical flex items-center justify-center text-sm"
                       >
                      <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" viewBox="0 0 20 20" fill="currentColor"> <path d="M3 1a1 1 0 000 2h1.22l.305 1.222a.997.997 0 00.01.042l1.358 5.43-.893.892C3.74 11.846 4.632 14 6.414 14H15a1 1 0 000-2H6.414l1-1H14a1 1 0 00.894-.553l3-6A1 1 0 0017 3H6.28l-.31-1.243A1 1 0 005 1H3zM16 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM6.5 18a1.5 1.5 0 100-3 1.5 1.5 0 000 3z" /> </svg>
@@ -64,29 +64,33 @@
 </template>
 
 <script setup lang="ts">
-// --- SEU SCRIPT SETUP CORRIGIDO PARA USAR TOAST ---
 import { computed } from 'vue';
 import { useQuery } from '@vue/apollo-composable';
 import { gql } from '@apollo/client/core';
-import { useCarrinhoStore, type ProdutoParaCarrinho } from '@/stores/carrinho.store'; // Importar tipo se exportado
-import { useToast } from 'vue-toastification'; // <<< Importar useToast
+// --- Importar a NOVA store e o Auth Store ---
+import { useCarrinhoStore } from '@/stores/carrinho.store';
+import { useAuthStore } from '@/stores/auth.store';
+// --- Não precisamos mais do tipo local 'ProdutoParaCarrinho' para esta action ---
+// import { type ProdutoParaCarrinho } from '@/stores/carrinho.store';
+import { useToast } from 'vue-toastification';
+import { useRouter } from 'vue-router'; // Importar se for redirecionar para login
 
-// Interfaces (ajuste se necessário)
+// --- Interfaces locais para tipar o resultado da query (OK) ---
 interface Categoria { id: string; nome: string; slug: string; }
 interface Produto {
-  id: string;
+  id: string; // ID é string (UUID)
   nome: string;
   preco: number;
   sku: string;
   imagemUrlPrincipal?: string | null;
   categoria: Categoria;
-  emEstoque: boolean;
+  emEstoque: boolean; // Você precisa buscar isso na query GraphQL?
   descricao?: string | null;
   quantidadeEstoque?: number;
 }
 interface ResultadoQueryProdutos { produtos: Produto[]; }
 
-// Query
+// --- Query GraphQL (OK) ---
 const BUSCAR_PRODUTOS_QUERY = gql`
   query BuscarTodosProdutosComCategoria {
     produtos {
@@ -107,30 +111,43 @@ const BUSCAR_PRODUTOS_QUERY = gql`
   }
 `;
 
+// --- Hooks ---
 const { result: resultado, loading: carregando, error: erro } = useQuery<ResultadoQueryProdutos>(BUSCAR_PRODUTOS_QUERY);
-const carrinhoStore = useCarrinhoStore();
-const toast = useToast(); // <<< Obter instância do toast
+const carrinhoStore = useCarrinhoStore(); // Instância da NOVA store
+const authStore = useAuthStore();       // Instância da Auth Store
+const toast = useToast();
+const router = useRouter(); // Instância do Router
 
+// --- Funções ---
 function formatarPreco(valor: number): string {
   if (typeof valor !== 'number') return '0,00';
   return valor.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
 
+// --- CORREÇÃO NA ACTION DE ADICIONAR ---
 function adicionarAoCarrinho(produto: Produto): void {
-  if (!produto) {
-    console.error("[ListaProdutos] Tentativa de adicionar produto inválido.");
-    toast.error("Não foi possível adicionar o produto.");
+  if (!authStore.isAuthenticated) {
+    toast.warning('Faça login para adicionar produtos ao carrinho!');
+    router.push({ name: 'Login' }); // Ou o nome da sua rota de login
     return;
   }
-  // Ajusta para a interface esperada pelo store
-  const produtoParaStore: ProdutoParaCarrinho = {
-      id: produto.id,
-      nome: produto.nome,
-      preco: produto.preco,
-      imagemUrlPrincipal: produto.imagemUrlPrincipal ?? null
-  };
-  carrinhoStore.adicionarItem(produtoParaStore);
-  toast.success(`"${produto.nome}" adicionado ao carrinho!`); // <<< Feedback com Toast
+
+  if (!produto || !produto.id) {
+    console.error("[ListaProdutos] Tentativa de adicionar produto inválido ou sem ID.");
+    toast.error("Não foi possível adicionar o produto (ID inválido).");
+    return;
+  }
+
+  console.log(`[ListaProdutos] Chamando action adicionarItem da store para produto ID: ${produto.id}`);
+
+  // Chama a NOVA action da store, passando ID (string) e quantidade (1)
+  carrinhoStore.adicionarItem(produto.id, 1);
+
+  // Feedback para os usuário
+  toast.success(`"${produto.nome}" adicionado ao carrinho!`);
+
+  // O estado da store será atualizado automaticamente
+  // pelo refetchQueries configurado na mutation dentro da store.
 }
 </script>
 

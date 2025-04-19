@@ -90,7 +90,7 @@ import { ref, computed, watch } from 'vue';
 import { useRoute } from 'vue-router';
 import { useQuery } from '@vue/apollo-composable';
 import { gql } from '@apollo/client/core';
-import { useCarrinhoStore, type ProdutoParaCarrinho } from '@/stores/carrinho.store'; // Importar tipo se necessário
+import { useCarrinhoStore } from '@/stores/carrinho.store'; // Importar tipo se necessário
 import { useToast } from 'vue-toastification';
 
 // --- Interfaces ---

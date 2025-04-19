@@ -7,6 +7,14 @@ type AuthPayload {
   usuario: Usuario!
 }
 
+type Carrinho {
+  atualizadoEm: DateTime!
+  criadoEm: DateTime!
+  id: ID!
+  itens: [ItemCarrinho]
+  total: Float!
+}
+
 type Categoria {
   id: ID!
   nome: String!
@@ -64,22 +72,33 @@ input EditarProdutoInput {
   sku: String
 }
 
+type ItemCarrinho {
+  adicionadoEm: DateTime!
+  id: Int!
+  precoUnitarioRegistrado: Float!
+  produto: Produto
+  produtoId: ID!
+  quantidade: Int!
+}
+
 input LoginInput {
   email: String!
   password: String!
 }
 
 type Mutation {
+  adicionarItemAoCarrinho(produtoId: ID!, quantidade: Int!): Carrinho!
+  atualizarQuantidadeItemCarrinho(itemCarrinhoId: Int!, novaQuantidade: Int!): Carrinho
   criarProduto(dados: CriarProdutoInput!): Produto!
-
-  """Atualiza um produto existente (requer autenticação)."""
   editarProduto(dados: EditarProdutoInput!, id: ID!): Produto!
+  limparCarrinho: Carrinho
 
   """Autentica um usuário e retorna um token JWT."""
   login(dadosLogin: LoginInput!): AuthPayload!
 
   """Registra um novo usuário."""
   registrar(dadosRegistro: RegistroInput!): Usuario!
+  removerItemDoCarrinho(itemCarrinhoId: Int!): Carrinho
 }
 
 type Produto {
@@ -98,6 +117,7 @@ type Produto {
 
 type Query {
   categorias: [Categoria!]!
+  meuCarrinho: Carrinho
 
   """Retorna dados do usuário logado."""
   meuPerfil: Usuario!
