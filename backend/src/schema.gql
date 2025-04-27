@@ -72,6 +72,31 @@ input EditarProdutoInput {
   sku: String
 }
 
+input EnderecoDetalheInput {
+  bairro: String!
+  cep: String!
+  cidade: String!
+  complemento: String
+  estado: String!
+  numero: String!
+  rua: String!
+}
+
+input EnderecoInput {
+  entrega: EnderecoDetalheInput!
+  faturamento: EnderecoDetalheInput
+}
+
+type EnderecoOutput {
+  bairro: String!
+  cep: String!
+  cidade: String!
+  complemento: String
+  estado: String!
+  numero: String!
+  rua: String!
+}
+
 type ItemCarrinho {
   adicionadoEm: DateTime!
   id: Int!
@@ -79,6 +104,15 @@ type ItemCarrinho {
   produto: Produto
   produtoId: ID!
   quantidade: Int!
+}
+
+type ItemPedido {
+  id: ID!
+  nomeProduto: String
+  precoUnitarioCompra: Float!
+  produtoId: ID!
+  quantidade: Int!
+  skuProduto: String
 }
 
 input LoginInput {
@@ -89,6 +123,7 @@ input LoginInput {
 type Mutation {
   adicionarItemAoCarrinho(produtoId: ID!, quantidade: Int!): Carrinho!
   atualizarQuantidadeItemCarrinho(itemCarrinhoId: Int!, novaQuantidade: Int!): Carrinho
+  criarPedido(endereco: EnderecoInput!): Pedido!
   criarProduto(dados: CriarProdutoInput!): Produto!
   editarProduto(dados: EditarProdutoInput!, id: ID!): Produto!
   limparCarrinho: Carrinho
@@ -99,6 +134,29 @@ type Mutation {
   """Registra um novo usuário."""
   registrar(dadosRegistro: RegistroInput!): Usuario!
   removerItemDoCarrinho(itemCarrinhoId: Int!): Carrinho
+}
+
+"""Os possíveis status de um pedido no sistema."""
+enum OrderStatus {
+  CANCELED
+  DELIVERED
+  FAILED
+  PAID
+  PENDING
+  PROCESSING
+  SHIPPED
+}
+
+type Pedido {
+  atualizadoEm: DateTime!
+  criadoEm: DateTime!
+  enderecoEntrega: EnderecoOutput!
+  enderecoFaturamento: EnderecoOutput
+  id: ID!
+  itens: [ItemPedido!]!
+  status: OrderStatus!
+  usuario: Usuario!
+  valorTotal: Float!
 }
 
 type Produto {
@@ -121,6 +179,8 @@ type Query {
 
   """Retorna dados do usuário logado."""
   meuPerfil: Usuario!
+  meusPedidos: [Pedido!]!
+  pedidoPorId(id: ID!): Pedido
   produto(id: ID!): Produto
   produtos(categoriaSlug: String): [Produto!]!
 }

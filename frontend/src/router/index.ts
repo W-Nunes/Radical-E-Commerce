@@ -39,21 +39,43 @@ const routes: Array<RouteRecordRaw> = [
     meta: { requiresGuest: true } // <<< Apenas para não logados
   },
 
-    // --- ROTAS ADMINISTRATIVAS ---
-    {
-      path: '/admin/produtos/novo',
-      name: 'AdminCriarProduto',
-      component: () => import('../views/admin/AdminProductCreatePage.vue'), // <<< Criaremos este
-      meta: { requiresAuth: true } // <<< Rota protegida!
-    },
 
-    {
-      path: '/admin/produtos/editar/:id', // Rota com parâmetro :id
-      name: 'AdminEditarProduto',
-      component: () => import('../views/admin/AdminProductEditPage.vue'), // <<< Criaremos este
-      props: true, // <<< IMPORTANTE: Passa o :id da URL como prop para o componente
-      meta: { requiresAuth: true } // <<< Rota protegida
-    },
+
+  {
+    path: '/checkout/endereco', // Ou só '/checkout' se preferir
+    name: 'CheckoutEndereco',   // Nome da rota
+    component: () => import('@/views/PaginaCheckoutEndereco.vue'), // O componente que vamos criar
+    meta: { requiresAuth: true } // <<< IMPORTANTE: Só acessível se logado
+  },
+  // --- FIM NOVA ROTA ---
+
+  // --- ROTA DE CONFIRMAÇÃO (Placeholder) ---
+  // Vamos adicionar já, mas criar o componente depois
+ /* {
+      path: '/pedido/sucesso/:id', // Recebe o ID do pedido como parâmetro
+      name: 'PedidoSucesso',
+      component: () => import('@/views/PaginaPedidoSucesso.vue'), // Componente a ser criado
+      props: true, // Passa o 'id' da URL como prop para o componente
+      meta: { requiresAuth: true }
+  }, */
+
+
+  
+  // --- ROTAS ADMINISTRATIVAS ---
+  {
+    path: '/admin/produtos/novo',
+    name: 'AdminCriarProduto',
+    component: () => import('../views/admin/AdminProductCreatePage.vue'), // <<< Criaremos este
+    meta: { requiresAuth: true } // <<< Rota protegida!
+  },
+
+  {
+    path: '/admin/produtos/editar/:id', // Rota com parâmetro :id
+    name: 'AdminEditarProduto',
+    component: () => import('../views/admin/AdminProductEditPage.vue'), // <<< Criaremos este
+    props: true, // <<< IMPORTANTE: Passa o :id da URL como prop para o componente
+    meta: { requiresAuth: true } // <<< Rota protegida
+  },
 
   // --- Exemplo de Rota Protegida (adicionar depois um componente real) ---
   // {

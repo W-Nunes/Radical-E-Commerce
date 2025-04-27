@@ -64,7 +64,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue';
+
 import { useQuery } from '@vue/apollo-composable';
 import { gql } from '@apollo/client/core';
 // --- Importar a NOVA store e o Auth Store ---

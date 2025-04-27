@@ -1,16 +1,19 @@
-// Define a estrutura para detalhes de endereço
-export interface EnderecoDetalheInput {
-    rua: string;
-    numero: string;
-    complemento?: string;
-    bairro: string;
-    cidade: string;
-    estado: string; // Sigla UF
-    cep: string;
-  }
-  
-  // Define a estrutura do input para a mutation criarPedido
-  export interface EnderecoInput {
-    entrega: EnderecoDetalheInput;
-    faturamento?: EnderecoDetalheInput; // Opcional
-  }
+// radical/frontend/src/types/endereco.input.ts
+
+// Representa os campos de um endereço, espelhando o EnderecoInput do backend
+export interface EnderecoInputType {
+  cep: string;
+  rua: string;
+  numero: string;
+  complemento?: string | null; // Complemento é opcional
+  bairro: string;
+  cidade: string;
+  estado: string; // Geralmente sigla com 2 caracteres (ex: 'SP')
+}
+
+// Opcional: Se a mutation 'criarPedido' no backend esperar um objeto
+// com 'entrega' e 'faturamento', você pode criar este tipo também:
+export interface CheckoutEnderecoInputType {
+    entrega: EnderecoInputType;
+    faturamento?: EnderecoInputType | null; // Faturamento pode ser opcional
+}

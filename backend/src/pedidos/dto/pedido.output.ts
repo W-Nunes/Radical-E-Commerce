@@ -1,39 +1,41 @@
-import { ObjectType, Field, ID, Float, Int, registerEnumType } from '@nestjs/graphql'; // Importar registerEnumType
-import { ItemPedidoType } from './item-pedido.output';
-import { OrderStatus } from '../../database/entities/pedidos.entity'; // Importar o Enum
-
-// Registrar o Enum para uso no GraphQL
-registerEnumType(OrderStatus, {
-    name: 'OrderStatus', // Nome do tipo Enum no schema GraphQL
-    description: 'Status possíveis de um pedido',
-});
+// radical/backend/src/pedidos/dto/pedido.output.ts
+import { ObjectType, Field, ID, Float, GraphQLISODateTime } from '@nestjs/graphql'; // Importar GraphQLISODateTime para datas
+import { OrderStatus } from '../../database/entities/pedidos.entity';
+import { UserOutput } from '../../auth/dto/user.output';
+import { ItemPedidoType } from './item-pedido.output'; // Usando seu ItemPedidoType
+// --- Importar o NOVO DTO de Output ---
+import { EnderecoOutput } from './endereco.output'; // <<< ALTERADO
+// --- Fim Importação ---
 
 @ObjectType('Pedido')
-export class PedidoType {
-  @Field(() => ID) // Pedido ID é UUID/string
+export class PedidoOutput {
+  @Field(() => ID)
   id: string;
-
-  @Field(() => ID) // Usuario ID é UUID/string
-  usuarioId: string;
 
   @Field(() => Float)
   valorTotal: number;
 
-  @Field(() => OrderStatus) // <-- Usar o Enum registrado
+  @Field(() => OrderStatus) // OK - OrderStatus foi registrado na entidade
   status: OrderStatus;
 
-  @Field(() => String, { nullable: true }) // Manter como string por simplicidade ou criar EnderecoType
-  enderecoEntrega: string | null;
+  // --- Usar o EnderecoOutput ---
+  @Field(() => EnderecoOutput) // <<< ALTERADO
+  enderecoEntrega: EnderecoOutput; // <<< Tipo TS e GraphQL alterados
 
-  @Field(() => String, { nullable: true })
-  enderecoFaturamento?: string | null;
+  @Field(() => EnderecoOutput, { nullable: true }) // <<< ALTERADO
+  enderecoFaturamento?: EnderecoOutput; // <<< Tipo TS e GraphQL alterados
+  // --- Fim da Alteração ---
 
-  @Field()
-  criadoEm: Date;
-
-  @Field({ nullable: true })
-  atualizadoEm?: Date;
-
-  @Field(() => [ItemPedidoType], { nullable: 'itemsAndList' })
+  @Field(() => [ItemPedidoType])
   itens: ItemPedidoType[];
+
+  @Field(() => UserOutput) // Pode precisar de ResolveField
+  usuario: UserOutput;
+
+  // Usar GraphQLISODateTime para datas é mais padronizado
+  @Field(() => GraphQLISODateTime)
+  criadoEm: Date; // O TS pode ser Date, o GraphQL será String ISO
+
+  @Field(() => GraphQLISODateTime)
+  atualizadoEm: Date; // O TS pode ser Date, o GraphQL será String ISO
 }

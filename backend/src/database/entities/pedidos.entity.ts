@@ -3,22 +3,33 @@ import {
     Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn,
     ManyToOne, OneToMany, JoinColumn,
 } from 'typeorm';
+// --- ADICIONAR IMPORTAÇÃO ---
+import { registerEnumType } from '@nestjs/graphql';
+// --- FIM ADIÇÃO ---
 import { UserEntity } from './user.entity';
-import { ItemPedidoEntity } from './item-pedido.entity'; // <-- Atualizar import
+import { ItemPedidoEntity } from './item-pedido.entity';
 
 // Enum para o status do pedido
 export enum OrderStatus {
     PENDING = 'PENDENTE',
     PROCESSING = 'PROCESSANDO',
-    PAID = 'PAGO', // <-- Adicionado
+    PAID = 'PAGO',
     SHIPPED = 'ENVIADO',
     DELIVERED = 'ENTREGUE',
     CANCELED = 'CANCELADO',
     FAILED = 'FALHOU',
 }
 
+// --- ADICIONAR REGISTRO AQUI ---
+registerEnumType(OrderStatus, {
+  name: 'OrderStatus', // Este será o nome do tipo Enum no schema GraphQL
+  description: 'Os possíveis status de um pedido no sistema.', // Descrição opcional
+});
+// --- FIM DO REGISTRO ---
+
+
 @Entity('pedidos')
-export class PedidoEntity { // <-- Renomeado para PedidoEntity
+export class PedidoEntity {
     @PrimaryGeneratedColumn('uuid')
     id: string;
 
@@ -26,12 +37,11 @@ export class PedidoEntity { // <-- Renomeado para PedidoEntity
     @JoinColumn({ name: 'usuario_id' })
     usuario: UserEntity;
 
-    @Column({ name: 'usuario_id', type: 'uuid'}) // Explicit type
+    @Column({ name: 'usuario_id', type: 'uuid'})
     usuarioId: string;
 
-    // Atualizar tipo para ItemPedidoEntity
     @OneToMany(() => ItemPedidoEntity, (item) => item.pedido, { cascade: ['insert'], eager: true })
-    itens: ItemPedidoEntity[]; // <-- Atualizado tipo
+    itens: ItemPedidoEntity[];
 
     @Column('decimal', { name: 'valor_total', precision: 10, scale: 2 })
     valorTotal: number;
@@ -46,9 +56,8 @@ export class PedidoEntity { // <-- Renomeado para PedidoEntity
     @Column('jsonb', { name: 'endereco_entrega', nullable: true })
     enderecoEntrega: object | null;
 
-    // Renomeado para faturamento para consistência com DTO
     @Column('jsonb', { name: 'endereco_faturamento', nullable: true })
-    enderecoFaturamento: object | null; // <-- Renomeado
+    enderecoFaturamento: object | null;
 
     @CreateDateColumn({ name: 'criado_em', type: 'timestamp with time zone' })
     criadoEm: Date;
