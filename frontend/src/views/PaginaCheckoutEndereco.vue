@@ -109,23 +109,36 @@ import { useRouter } from 'vue-router';
 import { storeToRefs } from 'pinia';
 import { useAuthStore } from '@/stores/auth.store';
 import { useCarrinhoStore } from '@/stores/carrinho.store';
-// --- Importar o tipo ---
-import type { EnderecoInputType } from '@/types/endereco.input';
+// --- 1. IMPORTAR A usePedidosStore ---
+import { usePedidosStore } from '@/stores/pedidos.store';
+// --- Importar Tipos ---
+// Certifique-se que CheckoutEnderecoInputType também está definido/exportado em endereco.input.ts
+import type { EnderecoInputType, CheckoutEnderecoInputType } from '@/types/endereco.input';
+import type { ItemCarrinhoType } from '@/types/item-carrinho.output'; // Use seu tipo
 
 const router = useRouter();
 const authStore = useAuthStore();
 const carrinhoStore = useCarrinhoStore();
+// --- 2. INSTANCIAR a pedidosStore ---
+const pedidosStore = usePedidosStore();
 
+// Pegar estado reativo do carrinho
 const {
   itensCarrinho: itensCarrinhoCheckout,
   valorTotal: valorTotalCarrinho,
-  isLoading: isLoadingCarrinho
+  isLoading: isLoadingCarrinho // Loading da store do carrinho (para o resumo)
 } = storeToRefs(carrinhoStore);
 
-const isProcessing = ref(false);
-const erroCheckout = ref<string | null>(null);
+// --- 3. PEGAR ESTADO REATIVO da pedidosStore ---
+// Pega isCreatingOrder e createOrderError da store de pedidos
+// Renomeia para isProcessing e erroCheckout para usar no template/lógica local
+const { isCreatingOrder: isProcessing, createOrderError: erroCheckout } = storeToRefs(pedidosStore);
 
-// --- Objeto Reativo para o Endereço ---
+// --- 4. REMOVER refs locais que agora vêm da store ---
+// const isProcessing = ref(false); // REMOVIDO
+// const erroCheckout = ref<string | null>(null); // REMOVIDO
+
+// Objeto Reativo para o Endereço
 const enderecoEntrega = reactive<EnderecoInputType>({
   cep: '',
   rua: '',
@@ -135,7 +148,6 @@ const enderecoEntrega = reactive<EnderecoInputType>({
   cidade: '',
   estado: '',
 });
-// --- Fim Objeto Reativo ---
 
 onMounted(() => {
   if (!itensCarrinhoCheckout.value || itensCarrinhoCheckout.value.length === 0) {
@@ -150,48 +162,56 @@ function formatarPreco(valor: number | undefined | null): string {
   return valor.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
 
-// --- Adicionado: Função simples para formatar CEP enquanto digita ---
 function formatarCep(event: Event) {
     const input = event.target as HTMLInputElement;
-    let value = input.value.replace(/\D/g, ''); // Remove tudo que não for dígito
+    let value = input.value.replace(/\D/g, '');
     if (value.length > 5) {
-        value = value.replace(/^(\d{5})(\d)/, '$1-$2'); // Coloca hífen depois do 5º dígito
+        value = value.replace(/^(\d{5})(\d)/, '$1-$2');
     }
-    // Limita a 9 caracteres (XXXXX-XXX)
     enderecoEntrega.cep = value.slice(0, 9);
 }
-// --- Fim Função CEP ---
 
+// --- Função processarPedido ATUALIZADA (sem simulação) ---
 async function processarPedido() {
-  erroCheckout.value = null;
-  isProcessing.value = true;
-  console.log('[Checkout] Tentando processar pedido com endereço:', JSON.parse(JSON.stringify(enderecoEntrega))); // Usa JSON para log limpo
+  // erroCheckout e isProcessing agora são reativos vindos da store
+  // A store deve resetar o erro no início da action criarPedido
+
+  console.log('[Checkout] Tentando processar pedido com endereço:', JSON.parse(JSON.stringify(enderecoEntrega)));
+
+  // Monta o objeto de dados esperado pela mutation/action
+  const dadosParaMutation: CheckoutEnderecoInputType = {
+      entrega: { ...enderecoEntrega }
+      // faturamento: ... (se necessário)
+  };
 
   try {
-    console.log('TODO: Chamar action para criar pedido na store!');
-    // --- SUBSTITUIR PELA CHAMADA REAL À ACTION DA STORE ---
-    // Exemplo:
-    // const pedidoCriado = await algumaStore.criarPedidoAction({ entrega: enderecoEntrega });
-    // if (!pedidoCriado || !pedidoCriado.id) {
-    //    throw new Error("Falha ao obter ID do pedido criado da store.");
-    // }
-    // const pedidoIdReal = pedidoCriado.id;
-    // -----------------------------------------------------
+    // --- CHAMADA REAL À ACTION DA STORE ---
+    console.log('[Checkout] Chamando pedidosStore.criarPedido...');
+    // Chama a action que existe na pedidos.store.ts
+    // A action agora gerencia isCreatingOrder e createOrderError
+    const pedidoCriado = await pedidosStore.criarPedido(dadosParaMutation); // <<< USA A VARIÁVEL pedidosStore
 
-    // Simulação por enquanto:
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    const pedidoIdSimulado = 'pedido-' + Date.now(); // Simular ID
+    if (!pedidoCriado || !pedidoCriado.id) {
+       console.error('[Checkout] A action criarPedido não retornou um pedido válido.');
+       throw new Error("Falha ao obter os dados do pedido criado.");
+    }
+    // --- FIM DA CHAMADA REAL ---
 
-    console.log('[Checkout] Pedido simulado criado com ID:', pedidoIdSimulado);
-    router.push({ name: 'PedidoSucesso', params: { id: pedidoIdSimulado } });
+    const pedidoIdReal = pedidoCriado.id; // Pega o ID REAL (UUID)
+    console.log('[Checkout] Pedido criado com sucesso! ID:', pedidoIdReal);
+
+    // --- Redirecionar para página de sucesso com o ID REAL ---
+    router.push({ name: 'PedidoSucesso', params: { id: pedidoIdReal } });
 
   } catch (error: any) {
-    console.error('[Checkout] Erro ao processar pedido:', error);
-    erroCheckout.value = error.message || 'Ocorreu um erro inesperado ao finalizar seu pedido.';
-  } finally {
-    isProcessing.value = false;
+    // O erro já deve ter sido logado pela store e estará em erroCheckout (via storeToRefs)
+    console.error('[Checkout] Erro capturado no componente ao chamar criarPedido:', error);
+    // Opcional: scrollar para o topo para mostrar a mensagem de erro que está em erroCheckout.value
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   }
+  // Não precisa mais de finally para isProcessing aqui, pois vem da store
 }
+// --- Fim função ---
 
 </script>
 

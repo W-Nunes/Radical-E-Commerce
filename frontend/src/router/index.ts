@@ -50,14 +50,13 @@ const routes: Array<RouteRecordRaw> = [
   // --- FIM NOVA ROTA ---
 
   // --- ROTA DE CONFIRMAÇÃO (Placeholder) ---
-  // Vamos adicionar já, mas criar o componente depois
- /* {
+  {
       path: '/pedido/sucesso/:id', // Recebe o ID do pedido como parâmetro
       name: 'PedidoSucesso',
       component: () => import('@/views/PaginaPedidoSucesso.vue'), // Componente a ser criado
       props: true, // Passa o 'id' da URL como prop para o componente
       meta: { requiresAuth: true }
-  }, */
+  },
 
 
   
