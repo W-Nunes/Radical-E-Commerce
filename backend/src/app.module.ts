@@ -1,64 +1,60 @@
-// radical/backend/src/app.module.ts
 import { Module } from '@nestjs/common';
-import { ConfigModule, ConfigService } from '@nestjs/config';
-import { TypeOrmModule } from '@nestjs/typeorm';
 import { GraphQLModule } from '@nestjs/graphql';
 import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
+import { TypeOrmModule } from '@nestjs/typeorm';
 import { join } from 'path';
+// --- NOVAS IMPORTAÇÕES ---
+import { ConfigModule, ConfigService } from '@nestjs/config';
+
+// Importe seus módulos existentes
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { AuthModule } from './auth/auth.module';
 import { ProdutosModule } from './produtos/produtos.module';
-import { SeedModule } from './seed/seed.module';
+import { AuthModule } from './auth/auth.module';
 import { PedidosModule } from './pedidos/pedidos.module';
 import { PagamentosModule } from './pagamentos/pagamentos.module';
-
-// --- CORREÇÃO IMPORTAÇÕES ---
-import { UserEntity } from './database/entities/user.entity';
-import { ProdutoEntity } from './database/entities/produto.entity';
-import { CategoriaEntity } from './database/entities/categoria.entity';
-import { PedidoEntity } from './database/entities/pedidos.entity'; // Arquivo renomeado
-import { ItemPedidoEntity } from './database/entities/item-pedido.entity'; // Arquivo renomeado
-import { Carrinho } from './database/entities/carrinho.entity';
-import { ItemCarrinho } from './database/entities/item-carrinho.entity';
-// --- FIM CORREÇÃO ---
+import { SeedModule } from './seed/seed.module';
 
 @Module({
   imports: [
-    ConfigModule.forRoot({ isGlobal: true }),
+    // --- MÓDULO DE CONFIGURAÇÃO ---
+    ConfigModule.forRoot({
+      isGlobal: true, // Torna o ConfigModule disponível globalmente
+      envFilePath: `.env.${process.env.NODE_ENV}`, // Carrega .env.test, .env.development, etc.
+      ignoreEnvFile: process.env.NODE_ENV === 'production', // Ignora o .env em produção
+    }),
+
+    // --- MÓDULO DO BANCO DE DADOS (DINÂMICO) ---
     TypeOrmModule.forRootAsync({
-      imports: [ConfigModule],
+      imports: [ConfigModule], // Importa o ConfigModule para usar o ConfigService
+      inject: [ConfigService], // Injeta o ConfigService
       useFactory: (configService: ConfigService) => ({
         type: 'postgres',
-        host: configService.get<string>('PGHOST', 'localhost'),
-        port: configService.get<number>('PGPORT', 5432),
-        username: configService.get<string>('PGUSER'),
-        password: configService.get<string>('PGPASSWORD'),
-        database: configService.get<string>('PGDATABASE'),
-        // É crucial listar TODAS as entidades aqui se não usar autoLoadEntities: true
-        entities: [
-          UserEntity, ProdutoEntity, CategoriaEntity, PedidoEntity, ItemPedidoEntity, Carrinho, ItemCarrinho // Nomes das entidades consistentes
-       ],
-       synchronize: configService.get<boolean>('DB_SYNCHRONIZE', false), // Manter false em produção!
-       // schema: 'public', // Seus schemas são definidos nas entidades (@Entity({ schema: '...' }))
-       ssl: { require: true, rejectUnauthorized: false },
-     }),
-     inject: [ConfigService],
-   }),
-   GraphQLModule.forRoot<ApolloDriverConfig>({
-     driver: ApolloDriver,
-     autoSchemaFile: join(process.cwd(), 'src/schema.gql'),
-     sortSchema: true,
-     playground: process.env.NODE_ENV !== 'production',
-     introspection: process.env.NODE_ENV !== 'production',
-   }),
-   AuthModule,
-   ProdutosModule,
-   SeedModule,
-   PedidosModule,    // <-- Registrado
-   PagamentosModule, // <-- Registrado
- ],
- controllers: [AppController],
- providers: [AppService],
+        host: configService.get<string>('DB_HOST'),
+        port: configService.get<number>('DB_PORT'),
+        username: configService.get<string>('DB_USERNAME'),
+        password: configService.get<string>('DB_PASSWORD'),
+        database: configService.get<string>('DB_DATABASE'),
+        entities: [join(__dirname, '**', '*.entity.{ts,js}')],
+        synchronize: true, // CUIDADO: Em produção, use migrations
+      }),
+    }),
+
+    GraphQLModule.forRoot<ApolloDriverConfig>({
+      driver: ApolloDriver,
+      autoSchemaFile: join(process.cwd(), 'src/schema.gql'),
+      sortSchema: true,
+      playground: true,
+    }),
+
+    // Seus outros módulos
+    ProdutosModule,
+    AuthModule,
+    PedidosModule,
+    PagamentosModule,
+    SeedModule,
+  ],
+  controllers: [AppController],
+  providers: [AppService],
 })
 export class AppModule {}

@@ -1,0 +1,64 @@
+services:
+  # --- 1. Banco de Dados de Desenvolvimento ---
+  db:
+    image: postgres:15
+    container_name: radical_db_dev
+    restart: always
+    ports:
+      - "5432:5432" # Expõe a porta do dev DB no seu computador
+    environment:
+      POSTGRES_DB: radical_db
+      POSTGRES_USER: radical_user
+      POSTGRES_PASSWORD: radical_password
+    volumes:
+      - pgdata_dev:/var/lib/postgresql/data
+    networks:
+      - radical-net
+
+  # --- 2. Banco de Dados de Teste ---
+  test-db:
+    image: postgres:15
+    container_name: radical_db_test
+    restart: always
+    ports:
+      - "5433:5432" # Expõe a porta do test DB em 5433 para não conflitar
+    environment:
+      POSTGRES_DB: radical_test_db
+      POSTGRES_USER: radical_user
+      POSTGRES_PASSWORD: radical_password
+    volumes:
+      - pgdata_test:/var/lib/postgresql/data
+    networks:
+      - radical-net
+
+  # --- 3. Aplicação Backend ---
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: radical_backend
+    depends_on:
+      - db      # Depende do banco de desenvolvimento para rodar normalmente
+      - test-db # Depende do banco de teste para... testar!
+    ports:
+      - "3000:3000"
+    environment:
+      # Variáveis para conectar no banco de desenvolvimento
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_USERNAME: radical_user
+      DB_PASSWORD: radical_password
+      DB_DATABASE: radical_db
+      # Adicionaremos variáveis para o banco de teste depois
+    networks:
+      - radical-net
+
+# Define os volumes para persistência dos dados
+volumes:
+  pgdata_dev:
+  pgdata_test:
+
+# Define a rede para comunicação entre os contêineres
+networks:
+  radical-net:
+    driver: bridge
