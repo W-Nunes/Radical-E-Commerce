@@ -14,9 +14,6 @@ jobs:
       - name: Checkout do código
         uses: actions/checkout@v3
 
-      # --- PASSO CORRIGIDO ---
-      # Usa a action oficial do Docker que já prepara todo o ambiente,
-      # incluindo o docker-compose (que agora é parte do comando 'docker compose')
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
@@ -31,7 +28,6 @@ jobs:
         run: npm install
         working-directory: backend
 
-      # --- COMANDO 'docker-compose' ATUALIZADO ---
       - name: Iniciar contêineres Docker
         run: docker compose up -d
         working-directory: backend
@@ -42,12 +38,15 @@ jobs:
       - name: Rodar Testes Unitários
         run: npm run test
         working-directory: backend
-
+      
+      # --- PASSO CORRIGIDO ---
       - name: Rodar Testes de Integração
+        # Adiciona a variável de ambiente NODE_OPTIONS para corrigir o bug do 'crypto'
+        env:
+          NODE_OPTIONS: --dns-result-order=ipv4first
         run: npm run test:e2e
         working-directory: backend
 
-      # --- COMANDO 'docker-compose' ATUALIZADO ---
       - name: Parar contêineres Docker
         if: always()
         run: docker compose down
