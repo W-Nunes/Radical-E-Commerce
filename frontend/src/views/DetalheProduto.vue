@@ -85,15 +85,15 @@
         </div> </div> </div> </div> </template>
 
 <script setup lang="ts">
-// --- SEU SCRIPT SETUP CORRIGIDO ---
 import { ref, computed, watch } from 'vue';
-import { useRoute } from 'vue-router';
+import { useRoute, useRouter } from 'vue-router';
 import { useQuery } from '@vue/apollo-composable';
 import { gql } from '@apollo/client/core';
-import { useCarrinhoStore } from '@/stores/carrinho.store'; // Importar tipo se necessário
+import { useCarrinhoStore } from '@/stores/carrinho.store';
+import { useAuthStore } from '@/stores/auth.store'; // Importar auth store
 import { useToast } from 'vue-toastification';
 
-// --- Interfaces ---
+// Interfaces para tipagem da query (OK)
 interface Categoria { id: string; nome: string; slug: string; }
 interface ProdutoDetalhe {
   id: string;
@@ -107,15 +107,17 @@ interface ProdutoDetalhe {
   categoria: Categoria;
 }
 interface ResultadoQueryProduto { produto: ProdutoDetalhe | null; }
-// -----------------
 
+// Hooks e Stores (OK)
 const route = useRoute();
-const idProduto = ref<string | null>(null);
+const router = useRouter(); // Adicionado router
 const carrinhoStore = useCarrinhoStore();
+const authStore = useAuthStore(); // Adicionado authStore
 const toast = useToast();
-const quantidade = ref(1); // Estado para quantidade
+const quantidade = ref(1);
+const idProduto = computed(() => route.params.id as string);
 
-// --- Query ---
+// Query GraphQL (OK)
 const BUSCAR_PRODUTO_POR_ID_QUERY = gql`
   query BuscarProdutoPorId($id: ID!) {
     produto(id: $id) {
@@ -127,74 +129,48 @@ const BUSCAR_PRODUTO_POR_ID_QUERY = gql`
       imagemUrlPrincipal
       emEstoque
       quantidadeEstoque
-      categoria {
-        id
-        nome
-        slug
-      }
+      categoria { id nome slug }
     }
   }
 `;
-// -------------
 
-// --- Apollo ---
-const variaveisQuery = computed(() => ({ id: idProduto.value }));
-const habilitado = computed(() => !!idProduto.value);
+// useQuery (OK)
 const { result, loading: carregando, error: erro } = useQuery<ResultadoQueryProduto>(
   BUSCAR_PRODUTO_POR_ID_QUERY,
-  variaveisQuery,
-  () => ({ enabled: habilitado.value, fetchPolicy: 'cache-and-network' })
+  { id: idProduto.value },
+  { fetchPolicy: 'cache-and-network' }
 );
 const produto = computed(() => result.value?.produto ?? null);
-// --------------
 
-// --- Watch ID ---
-watch(
-  () => route.params.id,
-  (novoId) => {
-    if (novoId && typeof novoId === 'string') { // Garante que é string
-      quantidade.value = 1; // Reseta quantidade
-      idProduto.value = novoId;
-    } else if (novoId && Array.isArray(novoId)) { // Se vier como array (menos comum)
-      quantidade.value = 1;
-      idProduto.value = novoId[0];
-    }
-     else {
-      idProduto.value = null;
-    }
-  },
-  { immediate: true }
-);
-// --------------
+// --- CORREÇÃO AQUI ---
+// A função adicionarAoCarrinho agora chama a action da store corretamente
+function adicionarAoCarrinho(item: ProdutoDetalhe | null): void {
+  if (!authStore.isAuthenticated) {
+    toast.warning('Faça login para adicionar produtos ao carrinho!');
+    router.push({ name: 'Login' });
+    return;
+  }
+  if (!item || !item.id) {
+    toast.error('Não foi possível adicionar este produto.');
+    return;
+  }
 
-// --- Funções ---
+  console.log(`[DetalheProduto] Adicionando ${quantidade.value}x "${item.nome}"...`);
+  // Chama a action da store com os dois argumentos esperados: produtoId (string) e quantidade (number)
+  carrinhoStore.adicionarItem(item.id, quantidade.value);
+
+  toast.success(`${quantidade.value}x "${item.nome}" adicionado(s) ao carrinho!`);
+  quantidade.value = 1; // Reseta a quantidade para o padrão
+}
+// --- FIM DA CORREÇÃO ---
+
+// Funções auxiliares (OK)
 function formatarPreco(valor: number): string {
   if (typeof valor !== 'number') return '0,00';
   return valor.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
 
-function adicionarAoCarrinho(item: ProdutoDetalhe | null): void {
-  if (!item) return;
-
-  // Adapta para a interface ProdutoParaCarrinho esperada pelo store
-  const produtoParaStore: ProdutoParaCarrinho = {
-      id: item.id,
-      nome: item.nome,
-      preco: item.preco,
-      imagemUrlPrincipal: item.imagemUrlPrincipal ?? null
-  };
-
-  console.log(`[DetalheProduto] Adicionando ${quantidade.value}x "${item.nome}"...`);
-  for (let i = 0; i < quantidade.value; i++) {
-      carrinhoStore.adicionarItem(produtoParaStore); // Chama com 1 argumento
-  }
-
-  toast.success(`${quantidade.value}x "${item.nome}" adicionado(s) ao carrinho!`); // Usa toast
-  quantidade.value = 1; // Reseta quantidade
-}
-
 function incrementarQuantidade() {
-  // Garante que produto.value e quantidadeEstoque existem e são números
   if (produto.value?.quantidadeEstoque && quantidade.value < produto.value.quantidadeEstoque) {
     quantidade.value++;
   }

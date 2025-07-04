@@ -87,11 +87,11 @@
   import { useRoute } from 'vue-router';
   import { gql } from '@apollo/client/core';
   import { useQuery } from '@vue/apollo-composable';
-  import type { PedidoOutput } from '@/types/pedido.output'; // <<< VERIFIQUE/CRIE ESTE TIPO
+  import type { PedidoType  } from '@/types/pedido.output'; // <<< VERIFIQUE/CRIE ESTE TIPO
   import type { OrderStatus } from '@/types/order-status.enum'; // <<< VERIFIQUE/CRIE ESTE ENUM
   
   // --- Query para buscar detalhes do pedido ---
-  // Ajuste os campos conforme o PedidoOutput do backend
+  // Ajuste os campos conforme o PedidoType  do backend
   const PEDIDO_POR_ID_QUERY = gql`
     query PedidoPorIdQuery($id: ID!) {
       pedidoPorId(id: $id) {
@@ -128,7 +128,7 @@
   const pedidoId = computed(() => route.params.id as string); // Pega o ID da URL
   
   // --- Executar a Query ---
-  const { result, loading, error } = useQuery<{ pedidoPorId: PedidoOutput | null }>(
+  const { result, loading, error } = useQuery<{ pedidoPorId: PedidoType  | null }>(
     PEDIDO_POR_ID_QUERY,
     // Passa o ID como variável para a query
     () => ({ id: pedidoId.value }),
