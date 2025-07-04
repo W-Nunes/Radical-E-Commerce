@@ -1,0 +1,57 @@
+name: CI de Testes do Backend
+
+# Gatilhos: Roda o workflow em pushes para as branches main e develop
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  test-backend:
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1. Baixa o código do seu repositório para a máquina virtual
+      # A raiz do repositório (pasta 'radical') é baixada
+      - name: Checkout do código
+        uses: actions/checkout@v3
+
+      # 2. Configura o Node.js
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+          # Aponta para o local correto do package-lock.json
+          cache: 'npm'
+          cache-dependency-path: backend/package-lock.json
+
+      # 3. Instala as dependências DENTRO da pasta backend
+      - name: Instalar dependências
+        run: npm install
+        working-directory: backend # Diz ao runner: "Execute este comando na pasta 'backend'"
+
+      # 4. Sobe os contêineres Docker
+      - name: Iniciar contêineres Docker
+        run: docker-compose up -d
+        working-directory: backend # Diz para usar o docker-compose.yml que está dentro da pasta 'backend'
+
+      # 5. Espera 15 segundos para garantir que o banco de dados esteja pronto
+      - name: Aguardar o banco de dados de teste
+        run: sleep 15
+
+      # 6. Roda os testes unitários
+      - name: Rodar Testes Unitários
+        run: npm run test
+        working-directory: backend
+
+      # 7. Roda os testes de integração
+      - name: Rodar Testes de Integração
+        run: npm run test:e2e
+        working-directory: backend
+
+      # 8. Desliga os contêineres Docker, mesmo se os testes falharem
+      - name: Parar contêineres Docker
+        if: always()
+        run: docker-compose down
+        working-directory: backend
