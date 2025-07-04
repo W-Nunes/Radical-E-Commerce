@@ -1,4 +1,5 @@
 // radical/backend/src/auth/auth.service.ts
+import { randomBytes } from 'crypto';
 import { Injectable, UnauthorizedException, Logger, InternalServerErrorException, ConflictException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
