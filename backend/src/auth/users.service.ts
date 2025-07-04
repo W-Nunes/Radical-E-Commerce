@@ -1,6 +1,7 @@
 // src/auth/users.service.ts
 import { Injectable, ConflictException, NotFoundException } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
+import * as crypto from 'crypto';
 
 // Interface simples para nosso usuário em memória
 export interface MockUser {
@@ -31,7 +32,8 @@ export class UsersService {
     if (existe) {
       throw new ConflictException(`Email ${dadosRegistro.email} já está em uso.`);
     }
-    const id = randomUUID(); // Função nativa do Node > v16
+
+    const id = crypto.randomUUID();
     const saltRounds = 10;
     const hash = await bcrypt.hash(dadosRegistro.password, saltRounds);
 
@@ -49,12 +51,3 @@ export class UsersService {
   }
 }
 
-// Polyfill simples para randomUUID se Node < 16 (não ideal para produção)
-import { randomBytes } from 'crypto';
-const randomUUID = (): string => {
-    if (typeof crypto !== 'undefined' && crypto.randomUUID) {
-       return crypto.randomUUID();
-    }
-    // Fallback simples (não é um UUID v4 real)
-    return randomBytes(16).toString('hex');
-};
