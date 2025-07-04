@@ -1,6 +1,7 @@
-// src/auth/users.service.ts
-import { Injectable, ConflictException, NotFoundException } from '@nestjs/common';
+// radical/backend/src/auth/users.service.ts
+import { Injectable, ConflictException } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
+// --- 1. Importa o módulo crypto inteiro ---
 import * as crypto from 'crypto';
 
 // Interface simples para nosso usuário em memória
@@ -14,7 +15,7 @@ export interface MockUser {
 
 @Injectable()
 export class UsersService {
-  private users: MockUser[] = []; // Armazena usuários em memória
+  private readonly users: MockUser[] = [];
 
   async findOneByEmail(email: string): Promise<MockUser | undefined> {
     console.log(`[MockUsersService] Buscando usuário por email: ${email}`);
@@ -32,7 +33,7 @@ export class UsersService {
     if (existe) {
       throw new ConflictException(`Email ${dadosRegistro.email} já está em uso.`);
     }
-
+    // --- 2. Chama a função a partir do módulo importado ---
     const id = crypto.randomUUID();
     const saltRounds = 10;
     const hash = await bcrypt.hash(dadosRegistro.password, saltRounds);
@@ -46,8 +47,6 @@ export class UsersService {
     };
     this.users.push(novoUsuario);
     console.log(`[MockUsersService] Usuário ${novoUsuario.email} criado com ID: ${id}`);
-    console.log('[MockUsersService] Usuários atuais:', this.users.map(u => u.email)); // Log para ver usuários
     return novoUsuario;
   }
 }
-
