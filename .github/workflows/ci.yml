@@ -38,10 +38,18 @@ jobs:
       - name: Rodar Testes Unitários
         run: npm run test
         working-directory: backend
-
+      
+      # --- PASSO CORRIGIDO COM VARIÁVEIS EXPLÍCITAS ---
       - name: Rodar Testes de Integração
         env:
-          NODE_OPTIONS: --dns-result-order=ipv4first
+          # Define as variáveis de ambiente diretamente para este passo
+          DB_HOST: localhost
+          DB_PORT: 5433
+          DB_USERNAME: radical_user
+          DB_PASSWORD: radical_password
+          DB_DATABASE: radical_test_db
+          JWT_SECRET: este_e_um_segredo_de_teste_muito_seguro
+          JWT_EXPIRATION_TIME: 15m
         run: npm run test:e2e
         working-directory: backend
 
