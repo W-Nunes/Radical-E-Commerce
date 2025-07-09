@@ -47,25 +47,49 @@ export class ProdutosService {
 
 
   // --- MÉTODO NOVO: findAll ---
-  async findAll(categoriaSlug?: string): Promise<ProdutoEntity[]> {
-    this.logger.debug(`[findAll] Buscando produtos ${categoriaSlug ? `para categoria slug: ${categoriaSlug}` : 'todos'}.`);
-    const queryBuilder = this.produtoRepository.createQueryBuilder('produto')
-        // Sempre carregar a categoria junto com o produto
-        .leftJoinAndSelect('produto.categoria', 'categoria');
+  async findAll(
+    categoriaSlug?: string,
+    termoBusca?: string,
+    pagina = 1,
+    limite = 8, // Define um limite padrão de 8 itens por página
+  ): Promise<{ itens: ProdutoEntity[]; total: number; pagina: number; totalPaginas: number }> {
+    const take = limite;
+    const skip = (pagina - 1) * take;
+
+    this.logger.debug(
+      `[findAll] Buscando produtos. Categoria: ${categoriaSlug || 'Todas'}, Busca: "${termoBusca || ''}", Página: ${pagina}, Limite: ${limite}`,
+    );
+
+    const queryBuilder = this.produtoRepository
+      .createQueryBuilder('produto')
+      .leftJoinAndSelect('produto.categoria', 'categoria');
 
     if (categoriaSlug) {
-      // Se um slug foi fornecido, filtra pela categoria correspondente
-      queryBuilder.innerJoin('produto.categoria', 'cat_filter', 'cat_filter.slug = :slug', { slug: categoriaSlug });
-      this.logger.verbose(`[findAll] Filtrando pela categoria slug: ${categoriaSlug}`);
+      queryBuilder.andWhere('categoria.slug = :slug', { slug: categoriaSlug });
+    }
+
+    if (termoBusca) {
+      // Busca case-insensitive no nome e na descrição do produto
+      queryBuilder.andWhere(
+        '(produto.nome ILIKE :termoBusca OR produto.descricao ILIKE :termoBusca)',
+        { termoBusca: `%${termoBusca}%` },
+      );
     }
 
     try {
-        const produtos = await queryBuilder.getMany();
-        this.logger.verbose(`[findAll] Encontrados ${produtos.length} produtos.`);
-        return produtos;
+      const [itens, total] = await queryBuilder
+        .orderBy('produto.criadoEm', 'DESC') // Ordena por mais recente
+        .skip(skip)
+        .take(take)
+        .getManyAndCount(); // Retorna os itens e a contagem total
+
+      const totalPaginas = Math.ceil(total / take);
+      this.logger.verbose(`[findAll] Encontrados ${total} produtos. Retornando ${itens.length} na página ${pagina}.`);
+
+      return { itens, total, pagina, totalPaginas };
     } catch (error) {
-        this.logger.error(`[findAll] Erro ao buscar produtos: ${error.message}`, error.stack);
-        throw new InternalServerErrorException('Erro ao buscar produtos.');
+      this.logger.error(`[findAll] Erro ao buscar produtos: ${error.message}`, error.stack);
+      throw new InternalServerErrorException('Erro ao buscar produtos.');
     }
   }
   // --- FIM MÉTODO findAll ---

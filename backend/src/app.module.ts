@@ -20,7 +20,7 @@ import { SeedModule } from './seed/seed.module';
     // --- MÓDULO DE CONFIGURAÇÃO ---
     ConfigModule.forRoot({
       isGlobal: true, // Torna o ConfigModule disponível globalmente
-      envFilePath: `.env.${process.env.NODE_ENV}`, // Carrega .env.test, .env.development, etc.
+      envFilePath: `.env.${process.env.NODE_ENV || 'development'}`,
       ignoreEnvFile: process.env.NODE_ENV === 'production', // Ignora o .env em produção
     }),
 
@@ -37,6 +37,8 @@ import { SeedModule } from './seed/seed.module';
         database: configService.get<string>('DB_DATABASE'),
         entities: [join(__dirname, '**', '*.entity.{ts,js}')],
         synchronize: true, // CUIDADO: Em produção, use migrations
+
+        ssl: { rejectUnauthorized: false }, 
       }),
     }),
 

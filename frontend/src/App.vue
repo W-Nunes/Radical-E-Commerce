@@ -4,6 +4,17 @@
       <h1 class="text-xl sm:text-2xl font-bold">
         <router-link to="/" class="hover:text-azul-radical transition-colors duration-200">🛹 Loja Radical 🤘</router-link>
       </h1>
+      
+      <div class="flex-grow max-w-xl mx-4">
+        <form @submit.prevent="executarBusca">
+          <input
+            type="search"
+            v-model="termoBusca"
+            placeholder="Buscar por produtos..."
+            class="w-full px-3 py-1.5 text-sm bg-gray-700 text-gray-200 border border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-azul-radical"
+          />
+        </form>
+      </div>
 
       <div class="flex items-center space-x-4 sm:space-x-6">
         <nav class="flex items-center space-x-2 sm:space-x-4">
@@ -61,15 +72,23 @@
 </template>
 
 <script setup lang="ts">
+import { ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { useCarrinhoStore } from '@/stores/carrinho.store';
 import { useAuthStore } from '@/stores/auth.store';
-import { useToast } from 'vue-toastification'; // <<< 1. IMPORTAR useToast
+import { useToast } from 'vue-toastification';
 
 const carrinhoStore = useCarrinhoStore();
 const authStore = useAuthStore();
 const router = useRouter();
-const toast = useToast(); // <<< 2. OBTER instância do toast
+const toast = useToast();
+
+const termoBusca = ref('');
+
+const executarBusca = () => {
+  // Navega para a página inicial, adicionando o termo de busca como query param
+  router.push({ name: 'Home', query: { q: termoBusca.value } });
+};
 
 const executarLogout = () => {
   console.log('[App] Executando logout...');

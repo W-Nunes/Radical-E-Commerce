@@ -173,6 +173,20 @@ type Produto {
   sku: String!
 }
 
+type ProdutoPaginadoOutput {
+  """A lista de produtos para a página atual."""
+  itens: [Produto!]!
+
+  """O número da página atual."""
+  pagina: Int!
+
+  """O número total de produtos que correspondem à consulta."""
+  total: Int!
+
+  """O número total de páginas disponíveis."""
+  totalPaginas: Int!
+}
+
 type Query {
   categorias: [Categoria!]!
   meuCarrinho: Carrinho
@@ -182,7 +196,7 @@ type Query {
   meusPedidos: [Pedido!]!
   pedidoPorId(id: ID!): Pedido
   produto(id: ID!): Produto
-  produtos(categoriaSlug: String): [Produto!]!
+  produtos(categoriaSlug: String, limite: Int = 4, pagina: Int = 1, termoBusca: String): ProdutoPaginadoOutput!
 }
 
 input RegistroInput {
