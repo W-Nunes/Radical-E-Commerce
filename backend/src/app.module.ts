@@ -26,20 +26,30 @@ import { SeedModule } from './seed/seed.module';
 
     // --- MÓDULO DO BANCO DE DADOS (DINÂMICO) ---
     TypeOrmModule.forRootAsync({
-      imports: [ConfigModule], // Importa o ConfigModule para usar o ConfigService
-      inject: [ConfigService], // Injeta o ConfigService
-      useFactory: (configService: ConfigService) => ({
-        type: 'postgres',
-        host: configService.get<string>('DB_HOST'),
-        port: configService.get<number>('DB_PORT'),
-        username: configService.get<string>('DB_USERNAME'),
-        password: configService.get<string>('DB_PASSWORD'),
-        database: configService.get<string>('DB_DATABASE'),
-        entities: [join(__dirname, '**', '*.entity.{ts,js}')],
-        synchronize: true, // CUIDADO: Em produção, use migrations
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: (configService: ConfigService) => {
+        // Define se SSL deve ser usado.
+        // Em 'test', não usamos SSL. Em 'development' (ou qualquer outro caso), usamos.
+        const useSsl = configService.get<string>('NODE_ENV') !== 'test';
 
-        ssl: { rejectUnauthorized: false }, 
-      }),
+        return {
+          type: 'postgres',
+          host: configService.get<string>('DB_HOST'),
+          port: configService.get<number>('DB_PORT'),
+          username: configService.get<string>('DB_USERNAME'),
+          password: configService.get<string>('DB_PASSWORD'),
+          database: configService.get<string>('DB_DATABASE'),
+          
+          // Aplica a configuração de SSL condicionalmente
+          ssl: useSsl ? { rejectUnauthorized: false } : false,
+          
+          entities: [join(__dirname, '**', '*.entity.{ts,js}')],
+          // Em um ambiente de teste, é seguro sincronizar.
+          // Para produção, o ideal é usar migrations.
+          synchronize: true, 
+        };
+      },
     }),
 
     GraphQLModule.forRoot<ApolloDriverConfig>({
