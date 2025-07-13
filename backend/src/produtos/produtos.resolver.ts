@@ -7,6 +7,8 @@ import { CategoriaEntity } from '../database/entities/categoria.entity';
 import { ProdutoOutput } from './dto/produto.output';
 import { CategoriaOutput } from './dto/categoria.output';
 import { ProdutoPaginadoOutput } from './dto/produto-paginado.output';
+import { ProdutoSort } from './dto/produto-sort.enum';
+
 import {
   NotFoundException,
   Logger,
@@ -30,18 +32,23 @@ export class ProdutosResolver {
     private readonly produtosService: ProdutosService,
   ) {}
 
+  
+
   @Query(() => ProdutoPaginadoOutput, { name: 'produtos' })
   async buscarTodosOsProdutos(
     @Args('categoriaSlug', { type: () => String, nullable: true }) categoriaSlug?: string,
     @Args('termoBusca', { type: () => String, nullable: true }) termoBusca?: string,
     @Args('pagina', { type: () => Int, nullable: true, defaultValue: 1 }) pagina?: number,
     @Args('limite', { type: () => Int, nullable: true, defaultValue: 4 }) limite?: number,
+    @Args('ordenacao', { type: () => ProdutoSort, nullable: true, defaultValue: ProdutoSort.MAIS_RECENTES }) ordenacao?: ProdutoSort,
+
   ): Promise<ProdutoPaginadoOutput> {
     this.logger.debug(`[Resolver] buscarTodosOsProdutos com pagina: ${pagina}, limite: ${limite}`);
     
     const resultadoDoServico = await this.produtosService.findAll(
       categoriaSlug,
       termoBusca,
+      ordenacao,
       pagina,
       limite,
     );
@@ -49,6 +56,14 @@ export class ProdutosResolver {
     // A correção está aqui: usamos 'as' para indicar ao TypeScript que o tipo está correto.
     return resultadoDoServico as unknown as ProdutoPaginadoOutput;
   }
+
+  @Query(() => [ProdutoOutput], { name: 'produtosAleatorios' })
+    async buscarProdutosAleatorios(
+        @Args('limite', { type: () => Int, nullable: true, defaultValue: 4 }) limite?: number,
+    ): Promise<ProdutoEntity[]> {
+        this.logger.debug(`[Resolver] buscando ${limite} produtos aleatórios.`);
+        return this.produtosService.findRandom(limite);
+    }
 
   @Query(() => ProdutoOutput, { name: 'produto', nullable: true })
   async buscarProdutoPorId(

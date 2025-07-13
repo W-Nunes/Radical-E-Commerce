@@ -187,6 +187,13 @@ type ProdutoPaginadoOutput {
   totalPaginas: Int!
 }
 
+"""Opções para ordenação da lista de produtos."""
+enum ProdutoSort {
+  MAIS_RECENTES
+  PRECO_ASC
+  PRECO_DESC
+}
+
 type Query {
   categorias: [Categoria!]!
   meuCarrinho: Carrinho
@@ -196,7 +203,8 @@ type Query {
   meusPedidos: [Pedido!]!
   pedidoPorId(id: ID!): Pedido
   produto(id: ID!): Produto
-  produtos(categoriaSlug: String, limite: Int = 4, pagina: Int = 1, termoBusca: String): ProdutoPaginadoOutput!
+  produtos(categoriaSlug: String, limite: Int = 4, ordenacao: ProdutoSort = MAIS_RECENTES, pagina: Int = 1, termoBusca: String): ProdutoPaginadoOutput!
+  produtosAleatorios(limite: Int = 4): [Produto!]!
 }
 
 input RegistroInput {

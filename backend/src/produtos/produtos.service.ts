@@ -13,6 +13,8 @@ import { CategoriaEntity } from '../database/entities/categoria.entity'; // Impo
 import { CriarProdutoInput } from './dto/criar-produto.input'; // Importar DTOs
 import { EditarProdutoInput } from './dto/editar-produto.input';
 
+import { ProdutoSort } from './dto/produto-sort.enum';
+
 @Injectable()
 export class ProdutosService {
   // Adicionar Logger
@@ -26,6 +28,37 @@ export class ProdutosService {
     private readonly categoriaRepository: Repository<CategoriaEntity>,
     // --- FIM ADIÇÃO ---
   ) {}
+
+  async findRandom(limite = 4): Promise<ProdutoEntity[]> {
+    this.logger.debug(`[findRandom] Buscando ${limite} produtos aleatórios.`);
+    try {
+      // Passo 1: Usamos uma consulta SQL nativa para buscar os IDs aleatórios.
+      // Esta abordagem é mais direta e não entra em conflito com o TypeORM.
+      const resultados: { id: string }[] = await this.produtoRepository.query(
+        `SELECT id FROM produtos ORDER BY RANDOM() LIMIT ${limite}`
+      );
+      
+      // Se não houver resultados, retorna um array vazio.
+      if (!resultados || resultados.length === 0) {
+        return [];
+      }
+
+      // Extrai apenas os valores dos IDs do resultado.
+      const ids = resultados.map(r => r.id);
+
+      // Passo 2: Usamos o QueryBuilder para buscar as entidades completas
+      // com base nos IDs aleatórios que encontramos, já incluindo a categoria.
+      return this.produtoRepository
+        .createQueryBuilder('produto')
+        .leftJoinAndSelect('produto.categoria', 'categoria')
+        .where('produto.id IN (:...ids)', { ids })
+        .getMany();
+
+    } catch (error) {
+      this.logger.error(`[findRandom] Erro ao buscar produtos aleatórios: ${error.message}`, error.stack);
+      throw new InternalServerErrorException('Erro ao buscar produtos em destaque.');
+    }
+  }
 
   // --- MÉTODO findOne MODIFICADO ---
   // Adiciona parâmetro opcional para carregar relações e retorna null se não encontrar
@@ -50,14 +83,15 @@ export class ProdutosService {
   async findAll(
     categoriaSlug?: string,
     termoBusca?: string,
+    ordenacao: ProdutoSort = ProdutoSort.MAIS_RECENTES, // Valor padrão
     pagina = 1,
-    limite = 8, // Define um limite padrão de 8 itens por página
+    limite = 4,
   ): Promise<{ itens: ProdutoEntity[]; total: number; pagina: number; totalPaginas: number }> {
     const take = limite;
     const skip = (pagina - 1) * take;
 
     this.logger.debug(
-      `[findAll] Buscando produtos. Categoria: ${categoriaSlug || 'Todas'}, Busca: "${termoBusca || ''}", Página: ${pagina}, Limite: ${limite}`,
+      `[findAll] Buscando produtos. Ordenação: ${ordenacao}, Busca: "${termoBusca || ''}", Página: ${pagina}`,
     );
 
     const queryBuilder = this.produtoRepository
@@ -69,19 +103,31 @@ export class ProdutosService {
     }
 
     if (termoBusca) {
-      // Busca case-insensitive no nome e na descrição do produto
       queryBuilder.andWhere(
         '(produto.nome ILIKE :termoBusca OR produto.descricao ILIKE :termoBusca)',
         { termoBusca: `%${termoBusca}%` },
       );
     }
 
+    // Lógica para aplicar a ordenação
+    switch (ordenacao) {
+      case ProdutoSort.PRECO_ASC:
+        queryBuilder.orderBy('produto.preco', 'ASC');
+        break;
+      case ProdutoSort.PRECO_DESC:
+        queryBuilder.orderBy('produto.preco', 'DESC');
+        break;
+      case ProdutoSort.MAIS_RECENTES:
+      default:
+        queryBuilder.orderBy('produto.criadoEm', 'DESC');
+        break;
+    }
+
     try {
       const [itens, total] = await queryBuilder
-        .orderBy('produto.criadoEm', 'DESC') // Ordena por mais recente
         .skip(skip)
         .take(take)
-        .getManyAndCount(); // Retorna os itens e a contagem total
+        .getManyAndCount();
 
       const totalPaginas = Math.ceil(total / take);
       this.logger.verbose(`[findAll] Encontrados ${total} produtos. Retornando ${itens.length} na página ${pagina}.`);
