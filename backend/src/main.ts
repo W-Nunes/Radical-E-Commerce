@@ -7,7 +7,10 @@ async function bootstrap() {
 
   // --- ADICIONE A CONFIGURAÇÃO DE CORS AQUI ---
   app.enableCors({
-    origin: 'http://localhost:5173', // Seu frontend
+    origin: [
+      'http://localhost:5173', // Para desenvolvimento local
+      'https://radical-e-commerce.netlify.app' // Para o site em produção
+    ],
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
     allowedHeaders: 'Content-Type, Accept, Authorization',
     credentials: true,
