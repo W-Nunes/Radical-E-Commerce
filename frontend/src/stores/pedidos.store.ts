@@ -34,8 +34,6 @@ export const usePedidosStore = defineStore('pedidos', () => {
     const carrinhoStore = useCarrinhoStore();
 
     try {
-      // ✅ INÍCIO DA CORREÇÃO ✅
-      
       const { entrega } = enderecoData;
 
       // 1. Validação simples para evitar chamadas desnecessárias
@@ -43,26 +41,24 @@ export const usePedidosStore = defineStore('pedidos', () => {
         throw new Error("Todos os campos de endereço são obrigatórios.");
       }
 
-      // 2. Limpeza e estruturação dos dados para corresponder ao DTO do backend
+      // 2. Limpeza, formatação e garantia dos tipos de dados
       const variables = {
-        endereco: { // Objeto principal que a mutation espera
-          entrega: { // Objeto aninhado `entrega`
-            rua: entrega.rua,
-            numero: entrega.numero,
-            complemento: entrega.complemento || null, // Garante `null` se for vazio
-            bairro: entrega.bairro,
-            cidade: entrega.cidade,
-            estado: entrega.estado.toUpperCase(), // Garante UF em maiúsculas
-            cep: entrega.cep.replace(/\D/g, ''), // Remove qualquer coisa que não seja dígito
+        endereco: {
+          entrega: {
+            rua: String(entrega.rua),
+            // ✅ AJUSTE FINAL: Garante que o número seja sempre uma string
+            numero: String(entrega.numero), 
+            complemento: entrega.complemento || null,
+            bairro: String(entrega.bairro),
+            cidade: String(entrega.cidade),
+            estado: String(entrega.estado).toUpperCase(),
+            cep: String(entrega.cep).replace(/\D/g, ''),
           },
-          // Se houvesse um endereço de faturamento, ele iria aqui
           faturamento: null,
         }
       };
       
-      console.log('[Pedidos Store] Variáveis SANITIZADAS enviadas para mutation:', JSON.stringify(variables, null, 2));
-      
-      // ✅ FIM DA CORREÇÃO ✅
+      console.log('[Pedidos Store] Variáveis FINAIS enviadas para mutation:', JSON.stringify(variables, null, 2));
 
       const { data, errors } = await apolloClient.mutate<{ criarPedido: PedidoType }>({
         mutation: CRIAR_PEDIDO_MUTATION,
