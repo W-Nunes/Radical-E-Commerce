@@ -18,7 +18,7 @@ import { CarrinhoService } from './carrinho.service';
 import { PedidosService } from './pedidos.service';
 
 // Resolvers
-import { CarrinhoResolver, ItemCarrinhoResolver } from './carrinho.resolver'; // <--- Importar AMBOS resolvers
+import { CarrinhoResolver, ItemCarrinhoResolver } from './carrinho.resolver'; 
 import { PedidosResolver } from './pedidos.resolver';
 
 
@@ -28,19 +28,18 @@ import { PedidosResolver } from './pedidos.resolver';
         PedidoEntity,
         ItemPedidoEntity,
         Carrinho,
-        ItemCarrinho // <-- Incluir ItemCarrinho aqui
+        ItemCarrinho 
     ]),
-    // forwardRef(AuthModule), // Remover se não houver dependência circular real
-    AuthModule, // Importar normalmente
-    ProdutosModule, // Essencial para injetar ProdutosService no ItemCarrinhoResolver
-    HttpModule,
-    forwardRef(() => PagamentosModule), // Manter se PedidosService injetar PagamentosService e vice-versa
+
+    AuthModule, 
+    ProdutosModule, 
+    forwardRef(() => PagamentosModule),
   ],
   providers: [
     CarrinhoService,
     PedidosService,
-    CarrinhoResolver,   // Resolver principal do Carrinho
-    ItemCarrinhoResolver, // <--- Adicionar o resolver do item aninhado
+    CarrinhoResolver,  
+    ItemCarrinhoResolver,
     PedidosResolver,
   ],
   exports: [PedidosService, CarrinhoService],

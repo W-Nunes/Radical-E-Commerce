@@ -1,11 +1,9 @@
-// radical/backend/src/pedidos/dto/pedido.output.ts
 import { ObjectType, Field, ID, Float, GraphQLISODateTime } from '@nestjs/graphql'; // Importar GraphQLISODateTime para datas
 import { OrderStatus } from '../../database/entities/pedidos.entity';
 import { UserOutput } from '../../auth/dto/user.output';
-import { ItemPedidoType } from './item-pedido.output'; // Usando seu ItemPedidoType
-// --- Importar o NOVO DTO de Output ---
-import { EnderecoOutput } from './endereco.output'; // <<< ALTERADO
-// --- Fim Importação ---
+import { ItemPedidoType } from './item-pedido.output'; 
+import { EnderecoOutput } from './endereco.output'; 
+
 
 @ObjectType('Pedido')
 export class PedidoOutput {
@@ -15,27 +13,25 @@ export class PedidoOutput {
   @Field(() => Float)
   valorTotal: number;
 
-  @Field(() => OrderStatus) // OK - OrderStatus foi registrado na entidade
+  @Field(() => OrderStatus) 
   status: OrderStatus;
 
-  // --- Usar o EnderecoOutput ---
-  @Field(() => EnderecoOutput) // <<< ALTERADO
-  enderecoEntrega: EnderecoOutput; // <<< Tipo TS e GraphQL alterados
 
-  @Field(() => EnderecoOutput, { nullable: true }) // <<< ALTERADO
-  enderecoFaturamento?: EnderecoOutput; // <<< Tipo TS e GraphQL alterados
-  // --- Fim da Alteração ---
+  @Field(() => EnderecoOutput) 
+  enderecoEntrega: EnderecoOutput; 
+
+  @Field(() => EnderecoOutput, { nullable: true }) 
+  enderecoFaturamento?: EnderecoOutput; 
 
   @Field(() => [ItemPedidoType])
   itens: ItemPedidoType[];
 
-  @Field(() => UserOutput) // Pode precisar de ResolveField
+  @Field(() => UserOutput) 
   usuario: UserOutput;
 
-  // Usar GraphQLISODateTime para datas é mais padronizado
   @Field(() => GraphQLISODateTime)
-  criadoEm: Date; // O TS pode ser Date, o GraphQL será String ISO
+  criadoEm: Date; 
 
   @Field(() => GraphQLISODateTime)
-  atualizadoEm: Date; // O TS pode ser Date, o GraphQL será String ISO
+  atualizadoEm: Date; 
 }

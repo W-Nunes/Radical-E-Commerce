@@ -1,7 +1,6 @@
-// src/types/produto.output.ts
-import type { CategoriaOutput } from "./categoria.output"; // Importa o tipo de categoria
+import type { CategoriaOutput } from "./categoria.output"; 
 
-// Espelha o ProdutoOutput DTO do backend
+// Espelha do ProdutoOutput DTO do backend
 export interface ProdutoOutput {
   id: string;
   nome: string;
@@ -9,7 +8,7 @@ export interface ProdutoOutput {
   preco: number;
   sku: string;
   imagemUrlPrincipal: string | null;
-  categoria: CategoriaOutput; // Categoria aninhada
+  categoria: CategoriaOutput;
   emEstoque: boolean;
   quantidadeEstoque: number;
 }

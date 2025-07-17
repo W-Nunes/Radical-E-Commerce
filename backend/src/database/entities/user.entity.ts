@@ -20,7 +20,7 @@ export class UserEntity {
       nullable: false,       // Hash é obrigatório
       select: false          // NÃO SELECIONAR por padrão em queries normais
   })
-  passwordHash: string; // Propriedade na classe
+  passwordHash: string; 
 
   // Timestamps automáticos
   @CreateDateColumn({ name: 'criado_em', type: 'timestamp with time zone', default: () => 'CURRENT_TIMESTAMP' })
@@ -29,5 +29,4 @@ export class UserEntity {
   @UpdateDateColumn({ name: 'atualizado_em', type: 'timestamp with time zone', default: () => 'CURRENT_TIMESTAMP', onUpdate: 'CURRENT_TIMESTAMP' })
   atualizadoEm: Date;
 
-  // Adicionar relacionamentos (ex: com Pedidos) depois, se necessário
 }

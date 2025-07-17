@@ -11,5 +11,4 @@ export class CategoriaOutput {
   @Field()
   slug: string;
 
-  // Não expomos a descrição aqui, talvez?
 }

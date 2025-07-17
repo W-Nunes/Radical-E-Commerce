@@ -1,5 +1,3 @@
-// Crie o arquivo: backend/src/frete/dto/frete.output.ts
-
 import { ObjectType, Field, Float } from '@nestjs/graphql';
 
 @ObjectType('Frete')

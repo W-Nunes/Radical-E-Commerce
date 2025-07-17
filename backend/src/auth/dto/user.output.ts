@@ -13,6 +13,4 @@ export class UserOutput {
 
     @Field(() => Date) // Expõe como DateTime ou similar no GraphQL
     criadoEm: Date;
-
-    // Não incluímos passwordHash nem atualizadoEm aqui por padrão
 }

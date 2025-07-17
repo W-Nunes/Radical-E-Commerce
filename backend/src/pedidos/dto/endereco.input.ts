@@ -1,4 +1,3 @@
-// radical/backend/src/pedidos/dto/endereco.input.ts (Exemplo - Crie este arquivo)
 import { InputType, Field } from '@nestjs/graphql';
 import { IsNotEmpty, IsOptional, IsString, MaxLength } from 'class-validator';
 
@@ -38,12 +37,12 @@ class EnderecoDetalheInput {
   @IsString()
   @IsNotEmpty()
   @MaxLength(2)
-  estado: string; // Sigla UF
+  estado: string; 
 
   @Field()
   @IsString()
   @IsNotEmpty()
-  @MaxLength(9) // Formato 00000-000
+  @MaxLength(9) 
   cep: string;
 }
 
@@ -54,5 +53,5 @@ export class EnderecoInput {
 
   @Field(() => EnderecoDetalheInput, { nullable: true })
   @IsOptional()
-  faturamento?: EnderecoDetalheInput; // Opcional, usa entrega se não fornecido
+  faturamento?: EnderecoDetalheInput;
 }

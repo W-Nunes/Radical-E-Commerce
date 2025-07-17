@@ -1,11 +1,8 @@
-// radical/backend/src/database/entities/pedidos.entity.ts
 import {
     Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn,
     ManyToOne, OneToMany, JoinColumn,
 } from 'typeorm';
-// --- ADICIONAR IMPORTAÇÃO ---
 import { registerEnumType } from '@nestjs/graphql';
-// --- FIM ADIÇÃO ---
 import { UserEntity } from './user.entity';
 import { ItemPedidoEntity } from './item-pedido.entity';
 
@@ -20,12 +17,11 @@ export enum OrderStatus {
     FAILED = 'FALHOU',
 }
 
-// --- ADICIONAR REGISTRO AQUI ---
 registerEnumType(OrderStatus, {
   name: 'OrderStatus', // Este será o nome do tipo Enum no schema GraphQL
-  description: 'Os possíveis status de um pedido no sistema.', // Descrição opcional
+  description: 'Os possíveis status de um pedido no sistema.', 
 });
-// --- FIM DO REGISTRO ---
+
 
 
 @Entity('pedidos')

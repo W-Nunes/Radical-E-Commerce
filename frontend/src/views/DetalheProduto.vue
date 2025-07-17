@@ -90,10 +90,10 @@ import { useRoute, useRouter } from 'vue-router';
 import { useQuery } from '@vue/apollo-composable';
 import { gql } from '@apollo/client/core';
 import { useCarrinhoStore } from '@/stores/carrinho.store';
-import { useAuthStore } from '@/stores/auth.store'; // Importar auth store
+import { useAuthStore } from '@/stores/auth.store';
 import { useToast } from 'vue-toastification';
 
-// Interfaces para tipagem da query (OK)
+// Interfaces para tipagem da query
 interface Categoria { id: string; nome: string; slug: string; }
 interface ProdutoDetalhe {
   id: string;
@@ -108,16 +108,16 @@ interface ProdutoDetalhe {
 }
 interface ResultadoQueryProduto { produto: ProdutoDetalhe | null; }
 
-// Hooks e Stores (OK)
+// Hooks e Stores
 const route = useRoute();
-const router = useRouter(); // Adicionado router
+const router = useRouter();
 const carrinhoStore = useCarrinhoStore();
-const authStore = useAuthStore(); // Adicionado authStore
+const authStore = useAuthStore();
 const toast = useToast();
 const quantidade = ref(1);
 const idProduto = computed(() => route.params.id as string);
 
-// Query GraphQL (OK)
+// Query GraphQL
 const BUSCAR_PRODUTO_POR_ID_QUERY = gql`
   query BuscarProdutoPorId($id: ID!) {
     produto(id: $id) {
@@ -134,7 +134,7 @@ const BUSCAR_PRODUTO_POR_ID_QUERY = gql`
   }
 `;
 
-// useQuery (OK)
+// useQuery
 const { result, loading: carregando, error: erro } = useQuery<ResultadoQueryProduto>(
   BUSCAR_PRODUTO_POR_ID_QUERY,
   { id: idProduto.value },
@@ -142,7 +142,6 @@ const { result, loading: carregando, error: erro } = useQuery<ResultadoQueryProd
 );
 const produto = computed(() => result.value?.produto ?? null);
 
-// --- CORREÇÃO AQUI ---
 // A função adicionarAoCarrinho agora chama a action da store corretamente
 function adicionarAoCarrinho(item: ProdutoDetalhe | null): void {
   if (!authStore.isAuthenticated) {
@@ -162,9 +161,8 @@ function adicionarAoCarrinho(item: ProdutoDetalhe | null): void {
   toast.success(`${quantidade.value}x "${item.nome}" adicionado(s) ao carrinho!`);
   quantidade.value = 1; // Reseta a quantidade para o padrão
 }
-// --- FIM DA CORREÇÃO ---
 
-// Funções auxiliares (OK)
+// Funções auxiliares
 function formatarPreco(valor: number): string {
   if (typeof valor !== 'number') return '0,00';
   return valor.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
@@ -181,7 +179,6 @@ function decrementarQuantidade() {
     quantidade.value--;
   }
 }
-// -------------
 </script>
 
 <style scoped>

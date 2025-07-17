@@ -1,5 +1,3 @@
-// Crie o arquivo: backend/src/frete/frete.resolver.ts
-
 import { Resolver, Query, Args } from '@nestjs/graphql';
 import { FreteService } from './frete.service';
 import { FreteOutput } from './dto/frete.output';

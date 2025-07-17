@@ -81,8 +81,7 @@
       title: 'BMX: Peças e Bikes',
       description: 'Do quadro ao guidão, encontre as melhores peças para montar ou dar um upgrade na sua bike de BMX.',
       link: '/?categoria=bmx',
-      // --- CORREÇÃO AQUI ---
-      animation: 'flip' // Alterado de 'spin' para 'flip'
+      animation: 'flip'
     },
     {
       img: imgLongboard,

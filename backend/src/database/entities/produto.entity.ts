@@ -16,7 +16,7 @@ export class ProdutoEntity {
   preco: number;
 
   @Column({ unique: true })
-  sku: string; // Código único do produto
+  sku: string;
 
   @Column({ name: 'quantidade_estoque', type: 'int', default: 0 })
   quantidadeEstoque: number;
@@ -24,10 +24,9 @@ export class ProdutoEntity {
   @Column({ name: 'imagem_url_principal', type: 'text', nullable: true })
   imagemUrlPrincipal: string | null;
 
-  // Relacionamento: Muitos produtos pertencem a uma categoria
-  // nullable: false -> indica que a categoria é obrigatória para o produto
+
   @ManyToOne(() => CategoriaEntity, (categoria) => categoria.produtos, { nullable: false, eager: true }) // eager: true -> sempre carrega a categoria junto com o produto
-  @JoinColumn({ name: 'categoria_id' }) // Nome da coluna da chave estrangeira
+  @JoinColumn({ name: 'categoria_id' }) 
   categoria: CategoriaEntity;
 
   @CreateDateColumn({ name: 'criado_em', type: 'timestamp with time zone', default: () => 'CURRENT_TIMESTAMP' })

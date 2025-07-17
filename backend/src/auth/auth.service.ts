@@ -1,22 +1,18 @@
-// radical/backend/src/auth/auth.service.ts
 import { Injectable, UnauthorizedException, Logger, InternalServerErrorException, ConflictException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import { ConfigService } from '@nestjs/config';
-import { InjectRepository } from '@nestjs/typeorm'; // <<< 1. Importar InjectRepository
-import { Repository } from 'typeorm'; // <<< 2. Importar Repository
-import { UserEntity } from '../database/entities/user.entity'; // <<< 3. Importar UserEntity
+import { InjectRepository } from '@nestjs/typeorm'; 
+import { Repository } from 'typeorm'; 
+import { UserEntity } from '../database/entities/user.entity'; 
 import { RegistroInput } from './dto/registro.input';
 import { LoginInput } from './dto/login.input';
 import { JwtPayload } from './interfaces/jwt-payload.interface';
 import { AuthPayload } from './dto/auth.payload';
 import { UserOutput } from './dto/user.output';
 
-// Removido UsersService e MockUser
-
 @Injectable()
 export class AuthService {
-    // Usar logger com contexto do projeto principal
     private logger = new Logger('AuthService');
 
     constructor(
@@ -36,17 +32,14 @@ export class AuthService {
         const passwordHash = await bcrypt.hash(password, saltRounds);
         this.logger.debug(`[registrar] Hash gerado para ${email}: ${passwordHash.substring(0, 10)}...`);
 
-        // <<< 5. Usar userRepository para criar e salvar
         const novoUsuario = this.userRepository.create({ nome, email, passwordHash });
 
         try {
             await this.userRepository.save(novoUsuario);
             this.logger.verbose(`[registrar] Usuário ${email} registrado com sucesso com ID: ${novoUsuario.id}.`);
-            // Retornar usuário sem o hash
             const { passwordHash: _, ...usuarioSeguro } = novoUsuario;
             return usuarioSeguro;
         } catch (error) {
-            // Tratamento de erro de constraint (ex: email único)
             if (error.code === '23505') {
                 this.logger.warn(`[registrar] Tentativa de registro com email duplicado: ${email}`);
                 throw new ConflictException('Este endereço de e-mail já está em uso.');
@@ -59,15 +52,11 @@ export class AuthService {
 
     async validarUsuario(email: string, pass: string): Promise<Omit<UserEntity, 'passwordHash'> | null> {
         this.logger.debug(`[validarUsuario] Tentando validar usuário: ${email}`);
-
-        // <<< 6. Usar QueryBuilder (ou findOne) para buscar usuário E hash
-        // Usando QueryBuilder como no seu serviço original para garantir seleção do hash
          const usuario = await this.userRepository
                                 .createQueryBuilder('user')
-                                .addSelect('user.passwordHash') // Garante que o hash venha
+                                .addSelect('user.passwordHash') 
                                 .where('user.email = :email', { email })
                                 .getOne();
-
         this.logger.debug(`[validarUsuario] Usuário encontrado no DB para ${email}: ${!!usuario}`);
         if (!usuario) {
             this.logger.warn(`[validarUsuario] Usuário com email ${email} não encontrado no banco.`);
@@ -84,7 +73,7 @@ export class AuthService {
             if (isMatch) {
                 this.logger.debug(`[validarUsuario] Senha válida para ${email}. Retornando usuário sem hash.`);
                 const { passwordHash: _, ...resultado } = usuario;
-                return resultado; // Retorna UserEntity sem o hash
+                return resultado;
             } else {
                  this.logger.warn(`[validarUsuario] Comparação de senha falhou para ${email}.`);
             }
@@ -96,11 +85,10 @@ export class AuthService {
         return null;
     }
 
-
     async login(dadosLogin: LoginInput): Promise<AuthPayload> {
         const { email, password } = dadosLogin;
         this.logger.debug(`[login] Iniciando processo de login para ${email}`);
-        const usuarioValidado = await this.validarUsuario(email, password); // Chama o validarUsuario adaptado
+        const usuarioValidado = await this.validarUsuario(email, password); 
 
         if (!usuarioValidado) {
             throw new UnauthorizedException('Credenciais inválidas.');
@@ -108,7 +96,7 @@ export class AuthService {
 
         const payload: JwtPayload = {
              id: usuarioValidado.id,
-             sub: usuarioValidado.id, // Adicionar sub também é uma boa prática
+             sub: usuarioValidado.id,
              email: usuarioValidado.email
         };
         this.logger.debug(`[login] Payload JWT criado: ${JSON.stringify(payload)}`);
@@ -127,7 +115,7 @@ export class AuthService {
         return { accessToken, usuario: usuarioOutput };
     }
 
-    // <<< 7. Adicionar/Confirmar método encontrarUsuarioPorId para a Strategy
+    // Adicionar/Confirmar método encontrarUsuarioPorId para a Strategy
     async encontrarUsuarioPorId(id: string): Promise<UserEntity | null> {
         this.logger.debug(`[encontrarUsuarioPorId] Buscando usuário por ID (da Strategy): ${id}`);
         const usuario = await this.userRepository.findOneBy({ id });

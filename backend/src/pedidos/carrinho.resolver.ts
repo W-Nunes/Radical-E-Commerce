@@ -1,6 +1,5 @@
-// radical/backend/src/pedidos/carrinho.resolver.ts
-import { Resolver, Query, Mutation, Args, Int, Float, ID, ResolveField, Parent } from '@nestjs/graphql'; // Float já está importado
-import { UseGuards, NotFoundException, BadRequestException, Logger } from '@nestjs/common'; // Importar Logger
+import { Resolver, Query, Mutation, Args, Int, Float, ID, ResolveField, Parent } from '@nestjs/graphql';
+import { UseGuards, NotFoundException, BadRequestException, Logger } from '@nestjs/common'; 
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import { UserEntity } from '../database/entities/user.entity';
@@ -18,37 +17,32 @@ async function findCartOrFail(carrinhoService: CarrinhoService, usuario: UserEnt
     if (!carrinho) {
         throw new NotFoundException(`Carrinho não encontrado para o usuário ${usuario.id}.`);
     }
-    // Garante que itens é um array, mesmo que vazio, para o cálculo do total
+
     if (!carrinho.itens) {
         carrinho.itens = [];
     }
+
     return carrinho;
 }
 
-// Resolver Principal para CarrinhoOutput
 @Resolver(() => CarrinhoOutput)
 @UseGuards(JwtAuthGuard)
 export class CarrinhoResolver {
-  // Adicionar Logger para depuração
   private readonly logger = new Logger(CarrinhoResolver.name);
-
   constructor(
       private readonly carrinhoService: CarrinhoService,
-      // O ProdutosService não é necessário aqui, apenas no ItemCarrinhoResolver
       ) {}
 
   @Query(() => CarrinhoOutput, { name: 'meuCarrinho', nullable: true })
   async meuCarrinho(@CurrentUser() usuario: UserEntity): Promise<Carrinho | null> {
     const carrinhoEntity = await this.carrinhoService.obterCarrinhoPorUsuario(usuario);
-    // Garante que itens seja array se o carrinho existir, para o ResolveField de total
+
     if (carrinhoEntity && !carrinhoEntity.itens) {
         carrinhoEntity.itens = [];
     }
     return carrinhoEntity;
   }
 
-  // --- Mutations (adicionarItem, removerItem, limparCarrinho, atualizarQuantidadeItem) ---
-  // MANTENHA AS MUTATIONS COMO ESTAVAM NA VERSÃO ANTERIOR (COM nullable: true onde necessário)
   @Mutation(() => CarrinhoOutput, { name: 'adicionarItemAoCarrinho' })
   async adicionarItem(
     @CurrentUser() usuario: UserEntity,

@@ -1,7 +1,4 @@
-// Edite o arquivo: backend/src/frete/frete.service.ts
-
 import { Injectable, Logger, BadRequestException } from '@nestjs/common';
-// O HttpService não é mais necessário, mas podemos deixá-lo para o futuro
 // import { HttpService } from '@nestjs/axios'; 
 // import { firstValueFrom } from 'rxjs';
 import { FreteOutput } from './dto/frete.output';
@@ -10,10 +7,8 @@ import { FreteOutput } from './dto/frete.output';
 export class FreteService {
   private readonly logger = new Logger(FreteService.name);
 
-  // Não precisamos mais do HttpService no construtor por enquanto
   constructor() {}
 
-  // A função agora é síncrona e retorna uma Promise resolvida
   async calcularFrete(cepDestino: string): Promise<FreteOutput[]> {
     this.logger.log(`[MOCK] Simulando cálculo de frete para o CEP: ${cepDestino}`);
 
@@ -26,8 +21,6 @@ export class FreteService {
     // Simula um pequeno delay, como se fosse uma chamada de rede
     await new Promise(resolve => setTimeout(resolve, 300));
 
-    // Retorna dados fixos para qualquer CEP válido.
-    // Você pode customizar esses valores como quiser.
     const opcoesDeFrete: FreteOutput[] = [
       {
         servico: 'PAC',

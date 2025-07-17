@@ -1,5 +1,3 @@
-// Edite o arquivo: frontend/tailwind.config.js
-
 const plugin = require('tailwindcss/plugin')
 
 /** @type {import('tailwindcss').Config} */

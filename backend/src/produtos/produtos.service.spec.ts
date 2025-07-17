@@ -1,12 +1,11 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { ProdutosResolver } from './produtos.resolver';
 import { ProdutosService } from './produtos.service';
-import { ProdutoEntity } from '../database/entities/produto.entity'; // Usando alias de path
+import { ProdutoEntity } from '../database/entities/produto.entity'; 
 import { CategoriaEntity } from '../database/entities/categoria.entity';
 import { CriarProdutoInput } from '../produtos/dto/criar-produto.input';
-import { NotFoundException, BadRequestException } from '@nestjs/common'; // Importar exceções
+import { NotFoundException, BadRequestException } from '@nestjs/common'; 
 
-// Mock (simulação) do nosso ProdutosService
 const mockProdutosService = {
   findAll: jest.fn(),
   findOne: jest.fn(),
@@ -15,14 +14,12 @@ const mockProdutosService = {
   update: jest.fn(),
 };
 
-// Descreve a suíte de testes para o 'ProdutosResolver'
+
 describe('ProdutosResolver', () => {
   let resolver: ProdutosResolver;
   let service: ProdutosService;
 
-  // Bloco que é executado antes de cada teste
   beforeEach(async () => {
-    // Limpa os mocks antes de cada teste para evitar que um teste influencie o outro
     jest.clearAllMocks();
 
     const module: TestingModule = await Test.createTestingModule({
@@ -30,7 +27,7 @@ describe('ProdutosResolver', () => {
         ProdutosResolver,
         {
           provide: ProdutosService,
-          useValue: mockProdutosService, // Usamos nosso mock no lugar do serviço real
+          useValue: mockProdutosService,
         },
       ],
     }).compile();
@@ -39,12 +36,11 @@ describe('ProdutosResolver', () => {
     service = module.get<ProdutosService>(ProdutosService);
   });
 
-  // Teste 1: Garante que o resolver foi inicializado corretamente
+
   it('deve estar definido', () => {
     expect(resolver).toBeDefined();
   });
 
-  // Grupo de testes para a query 'produtos' (buscarTodosOsProdutos)
   describe('buscarTodosOsProdutos', () => {
     it('deve retornar um array de produtos', async () => {
       const resultadoMock: ProdutoEntity[] = [
@@ -59,8 +55,6 @@ describe('ProdutosResolver', () => {
     });
   });
 
-  // --- CORREÇÃO E EXPANSÃO AQUI ---
-  // Grupo de testes para a mutation 'criarProduto'
   describe('criarProduto', () => {
     it('deve criar e retornar um produto quando os dados são válidos', async () => {
       const dadosDeEntrada: CriarProdutoInput = {
@@ -71,19 +65,18 @@ describe('ProdutosResolver', () => {
         quantidadeEstoque: 10,
       };
 
-      // Corrigindo o mock para ser uma ProdutoEntity completa
       const resultadoMock: ProdutoEntity = {
         id: 'prod-uuid-1',
         ...dadosDeEntrada,
-        descricao: null, // Campo obrigatório no tipo
-        imagemUrlPrincipal: null, // Campo obrigatório no tipo
-        categoria: { id: 'cat-uuid-1', nome: 'Shapes' } as CategoriaEntity, // Mock da categoria
-        criadoEm: new Date(), // Campo obrigatório no tipo
-        atualizadoEm: new Date(), // Campo obrigatório no tipo
+        descricao: null, 
+        imagemUrlPrincipal: null,
+        categoria: { id: 'cat-uuid-1', nome: 'Shapes' } as CategoriaEntity,
+        criadoEm: new Date(),
+        atualizadoEm: new Date(),
       };
 
       mockProdutosService.create.mockResolvedValue(resultadoMock);
-
+    
       const resultado = await resolver.criarProduto(dadosDeEntrada);
 
       expect(resultado).toEqual(resultadoMock);
@@ -101,8 +94,7 @@ describe('ProdutosResolver', () => {
 
       const erro = new NotFoundException('Categoria não encontrada');
       mockProdutosService.create.mockRejectedValue(erro);
-
-      // Verifica se a chamada ao resolver realmente resulta na exceção esperada
+      
       await expect(resolver.criarProduto(dadosDeEntrada)).rejects.toThrow(NotFoundException);
     });
 

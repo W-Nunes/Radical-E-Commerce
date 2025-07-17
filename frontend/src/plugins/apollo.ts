@@ -1,8 +1,7 @@
-// radical/frontend/src/plugins/apollo.ts
+
 import { ApolloClient, createHttpLink, InMemoryCache, ApolloLink } from '@apollo/client/core';
 import { setContext } from '@apollo/client/link/context';
 import { onError } from "@apollo/client/link/error";
-// Não importar a store aqui
 
 const httpLink = createHttpLink({
   uri: import.meta.env.VITE_GRAPHQL_ENDPOINT || 'http://localhost:3000/graphql',
@@ -11,8 +10,7 @@ const httpLink = createHttpLink({
 // Middleware para adicionar o Header Authorization lendo do localStorage
 const authLink = setContext((_, { headers }) => {
   let token: string | null = null;
-  // Tenta ler diretamente do localStorage onde o pinia-persist salva
-  // A chave padrão para a store 'auth' é 'auth'
+  // Tenta ler do localStorage onde o pinia-persist salva
   const persistedAuth = localStorage.getItem('auth');
   if (persistedAuth) {
     try {
@@ -21,8 +19,6 @@ const authLink = setContext((_, { headers }) => {
       console.error("Erro ao parsear token persistido no Apollo link:", e);
     }
   }
-
-  // console.log('[Apollo AuthLink] Token do localStorage:', token ? token.substring(0, 10) + '...' : 'Nenhum');
 
   return {
     headers: {
@@ -39,7 +35,7 @@ const errorLink = onError(({ graphQLErrors, networkError }) => {
 
 const cache = new InMemoryCache();
 
-// Cliente ÚNICO, configurado aqui
+// Configuração de Cliente ÚNICO
 const apolloClient = new ApolloClient({
   link: ApolloLink.from([errorLink, authLink, httpLink]),
   cache,

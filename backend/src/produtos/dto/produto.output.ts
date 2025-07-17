@@ -9,14 +9,8 @@ export class ProdutoOutput {
   @Field()
   nome: string;
 
-  // --- CORREÇÃO AQUI ---
-  // Antes era:
-  // @Field({ nullable: true })
-  // descricao?: string;
-  // Agora: Define explicitamente o tipo e a nulidade para GraphQL e TS
   @Field(() => String, { nullable: true })
   descricao: string | null;
-  // ---------------------
 
   @Field(() => Float)
   preco: number;
@@ -24,14 +18,8 @@ export class ProdutoOutput {
   @Field()
   sku: string;
 
-  // --- CORREÇÃO AQUI ---
-  // Antes era:
-  // @Field({ nullable: true })
-  // imagemUrlPrincipal?: string;
-  // Agora: Define explicitamente o tipo e a nulidade para GraphQL e TS
   @Field(() => String, { nullable: true })
   imagemUrlPrincipal: string | null;
-  // ---------------------
 
   @Field(() => CategoriaOutput)
   categoria: CategoriaOutput;
@@ -39,8 +27,8 @@ export class ProdutoOutput {
   @Field(() => Boolean)
   emEstoque: boolean;
 
-  @Field(() => Int, { description: 'Quantidade atual em estoque' }) // Expõe como Int no GraphQL
-  quantidadeEstoque: number; // O tipo TypeScript é number
+  @Field(() => Int, { description: 'Quantidade atual em estoque' })
+  quantidadeEstoque: number; 
   
 }
 

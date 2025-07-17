@@ -1,32 +1,30 @@
-// radical/backend/src/produtos/produtos.service.ts
 import {
   Injectable,
   NotFoundException,
-  Logger, // Importar Logger
-  BadRequestException, // Importar BadRequestException
-  InternalServerErrorException, // Importar InternalServerErrorException
+  Logger,
+  BadRequestException, 
+  InternalServerErrorException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, EntityManager, Not } from 'typeorm'; // Importar Not
+import { Repository, EntityManager, Not } from 'typeorm'; 
 import { ProdutoEntity } from '../database/entities/produto.entity';
-import { CategoriaEntity } from '../database/entities/categoria.entity'; // Importar CategoriaEntity
-import { CriarProdutoInput } from './dto/criar-produto.input'; // Importar DTOs
+import { CategoriaEntity } from '../database/entities/categoria.entity'; 
+import { CriarProdutoInput } from './dto/criar-produto.input'; 
 import { EditarProdutoInput } from './dto/editar-produto.input';
 
 import { ProdutoSort } from './dto/produto-sort.enum';
 
 @Injectable()
 export class ProdutosService {
-  // Adicionar Logger
   private readonly logger = new Logger(ProdutosService.name);
 
   constructor(
     @InjectRepository(ProdutoEntity)
     private readonly produtoRepository: Repository<ProdutoEntity>,
-    // --- ADICIONAR INJEÇÃO ---
+
     @InjectRepository(CategoriaEntity)
     private readonly categoriaRepository: Repository<CategoriaEntity>,
-    // --- FIM ADIÇÃO ---
+
   ) {}
 
 
@@ -46,22 +44,18 @@ export class ProdutosService {
   async findRandom(limite = 4): Promise<ProdutoEntity[]> {
     this.logger.debug(`[findRandom] Buscando ${limite} produtos aleatórios.`);
     try {
-      // Passo 1: Usamos uma consulta SQL nativa para buscar os IDs aleatórios.
-      // Esta abordagem é mais direta e não entra em conflito com o TypeORM.
+
       const resultados: { id: string }[] = await this.produtoRepository.query(
         `SELECT id FROM produtos ORDER BY RANDOM() LIMIT ${limite}`
       );
       
-      // Se não houver resultados, retorna um array vazio.
+
       if (!resultados || resultados.length === 0) {
         return [];
       }
 
-      // Extrai apenas os valores dos IDs do resultado.
       const ids = resultados.map(r => r.id);
 
-      // Passo 2: Usamos o QueryBuilder para buscar as entidades completas
-      // com base nos IDs aleatórios que encontramos, já incluindo a categoria.
       return this.produtoRepository
         .createQueryBuilder('produto')
         .leftJoinAndSelect('produto.categoria', 'categoria')
@@ -74,23 +68,20 @@ export class ProdutosService {
     }
   }
 
-  // --- MÉTODO findOne MODIFICADO ---
-  // Adiciona parâmetro opcional para carregar relações e retorna null se não encontrar
   async findOne(id: string, relations: string[] = []): Promise<ProdutoEntity | null> {
     this.logger.debug(`[findOne] Buscando produto com ID: ${id} e relações: ${relations.join(', ')}`);
     // Não usar manager aqui, pois as chamadas do resolver não usarão transações por padrão
     const produto = await this.produtoRepository.findOne({
         where: { id: id },
-        relations: relations, // Carrega as relações especificadas
+        relations: relations,
     });
     if (!produto) {
-      // Retorna null em vez de lançar exceção aqui, deixa o chamador decidir
       this.logger.warn(`[findOne] Produto com ID ${id} não encontrado.`);
       return null;
     }
     return produto;
   }
-  // --- FIM findOne MODIFICADO ---
+
 
 
   // --- MÉTODO NOVO: findAll ---
@@ -152,10 +143,10 @@ export class ProdutosService {
       throw new InternalServerErrorException('Erro ao buscar produtos.');
     }
   }
-  // --- FIM MÉTODO findAll ---
+  // --- FIM ---
 
 
-  // --- MÉTODO NOVO: findAllCategorias ---
+  // --- MÉTODO: findAllCategorias ---
   async findAllCategorias(): Promise<CategoriaEntity[]> {
       this.logger.debug('[findAllCategorias] Buscando todas as categorias.');
       try {
@@ -167,15 +158,14 @@ export class ProdutosService {
           throw new InternalServerErrorException('Erro ao buscar categorias.');
       }
   }
-  // --- FIM MÉTODO findAllCategorias ---
+  // --- FIM ---
 
 
-  // --- MÉTODO NOVO: create ---
+  // --- MÉTODO: create ---
   async create(dados: CriarProdutoInput): Promise<ProdutoEntity> {
     this.logger.log(`[create] Recebida requisição para criar produto: ${dados.nome} (SKU: ${dados.sku})`);
     const { categoriaId, ...restanteDosDados } = dados;
 
-    // 1. Validar categoria
     this.logger.debug(`[create] Buscando categoria com ID: ${categoriaId}`);
     const categoriaEncontrada = await this.categoriaRepository.findOneBy({ id: categoriaId });
     if (!categoriaEncontrada) {
@@ -184,7 +174,6 @@ export class ProdutosService {
     }
     this.logger.debug(`[create] Categoria encontrada: ${categoriaEncontrada.nome}`);
 
-    // 2. Validar SKU (garantir unicidade)
     this.logger.debug(`[create] Verificando SKU: ${dados.sku}`);
     const skuExistente = await this.produtoRepository.findOneBy({ sku: dados.sku });
     if (skuExistente) {
@@ -192,80 +181,67 @@ export class ProdutosService {
         throw new BadRequestException(`O SKU '${dados.sku}' já está em uso.`);
     }
 
-    // 3. Criar e salvar a entidade
     try {
         const novoProduto = this.produtoRepository.create({
             ...restanteDosDados,
-            categoria: categoriaEncontrada, // Associa a categoria encontrada
+            categoria: categoriaEncontrada, 
         });
         this.logger.debug(`[create] Entidade Produto criada (sem salvar): ${JSON.stringify(novoProduto)}`);
 
         const produtoSalvo = await this.produtoRepository.save(novoProduto);
         this.logger.log(`[create] Produto '${produtoSalvo.nome}' (ID: ${produtoSalvo.id}) salvo com sucesso.`);
 
-        // Retorna o produto salvo. O 'save' geralmente retorna a entidade com as relações que foram passadas.
-        // Se a categoria não vier, pode ser necessário recarregar: return this.findOne(produtoSalvo.id, ['categoria']);
         return produtoSalvo;
     } catch (error) {
          this.logger.error(`[create] Erro ao salvar produto: ${error.message}`, error.stack);
-         // Verificar se é erro de constraint (ex: SKU único no DB)
+
          if (error.code === '23505') { // Código PostgreSQL para unique violation
              throw new BadRequestException(`Erro de duplicidade ao salvar. Verifique SKU ou outros campos únicos.`);
          }
          throw new InternalServerErrorException('Erro ao salvar o novo produto.');
     }
   }
-  // --- FIM MÉTODO create ---
+  // --- FIM ---
 
 
-  // --- MÉTODO NOVO: update ---
+  // --- MÉTODO: update ---
   async update(id: string, dados: EditarProdutoInput): Promise<ProdutoEntity> {
     this.logger.log(`[update] Recebida requisição para editar produto ID: ${id}`);
     this.logger.verbose(`[update] Dados recebidos: ${JSON.stringify(dados)}`);
 
-    // 1. Buscar o produto existente (já carregando a categoria para evitar busca extra depois)
-    // Usando findOne do próprio serviço que já retorna null ou entidade
     const produtoEncontrado = await this.findOne(id, ['categoria']);
     if (!produtoEncontrado) {
-        // findOne não lança mais exceção, então precisamos lançar aqui
         this.logger.warn(`[update] Produto com ID ${id} não encontrado para edição.`);
         throw new NotFoundException(`Produto com ID ${id} não encontrado.`);
     }
     this.logger.debug(`[update] Produto encontrado: ${produtoEncontrado.nome}`);
 
-    // 2. Verificar e atualizar a categoria, se fornecida
-    if (dados.categoriaId && dados.categoriaId !== produtoEncontrado.categoria?.id) { // Só atualiza se diferente
+    if (dados.categoriaId && dados.categoriaId !== produtoEncontrado.categoria?.id) { 
       this.logger.debug(`[update] Buscando nova categoria com ID: ${dados.categoriaId}`);
       const novaCategoria = await this.categoriaRepository.findOneBy({ id: dados.categoriaId });
       if (!novaCategoria) {
         this.logger.warn(`[update] Nova categoria com ID ${dados.categoriaId} não encontrada.`);
         throw new NotFoundException(`Nova categoria com ID ${dados.categoriaId} não encontrada.`);
       }
-      produtoEncontrado.categoria = novaCategoria; // Atualiza a relação
+      produtoEncontrado.categoria = novaCategoria; 
       this.logger.debug(`[update] Categoria do produto atualizada para: ${novaCategoria.nome}`);
     }
 
-    // 3. Verificar e atualizar o SKU, checando conflitos
-    if (dados.sku && dados.sku !== produtoEncontrado.sku) { // Só atualiza se diferente
+    if (dados.sku && dados.sku !== produtoEncontrado.sku) { 
         this.logger.debug(`[update] Verificando conflito para novo SKU: ${dados.sku}`);
         const conflitoSku = await this.produtoRepository.findOne({
             where: {
                 sku: dados.sku,
-                id: Not(id) // Verifica se o SKU existe em OUTRO produto
+                id: Not(id)
             }
         });
         if (conflitoSku) {
             this.logger.warn(`[update] Novo SKU ${dados.sku} já está em uso pelo produto ${conflitoSku.id}.`);
             throw new BadRequestException(`O novo SKU '${dados.sku}' já está em uso por outro produto.`);
         }
-        produtoEncontrado.sku = dados.sku; // Atualiza o SKU
+        produtoEncontrado.sku = dados.sku; 
         this.logger.debug(`[update] SKU do produto atualizado para: ${dados.sku}`);
     }
-
-    // 4. Atualizar outros campos se eles foram fornecidos no DTO
-    // Object.assign é mais conciso, mas menos explícito sobre quais campos podem ser atualizados
-    // delete dados.categoriaId; // Remove para não sobrescrever a entidade categoria
-    // Object.assign(produtoEncontrado, dados);
 
     // Abordagem mais segura, campo a campo:
      if (dados.nome !== undefined) produtoEncontrado.nome = dados.nome;
@@ -275,35 +251,33 @@ export class ProdutosService {
      if (dados.imagemUrlPrincipal !== undefined) produtoEncontrado.imagemUrlPrincipal = dados.imagemUrlPrincipal; // Permite setar para null
 
 
-    // 5. Salvar as alterações
     try {
-        // O save atualiza a entidade existente baseada no ID
+
         const produtoAtualizado = await this.produtoRepository.save(produtoEncontrado);
         this.logger.log(`[update] Produto '${produtoAtualizado.nome}' (ID: ${id}) atualizado com sucesso.`);
-        // O save deve retornar a entidade atualizada, incluindo a categoria se ela foi parte do objeto salvo
+
         return produtoAtualizado;
     } catch (error) {
          this.logger.error(`[update] Erro ao atualizar produto ${id}: ${error.message}`, error.stack);
-         if (error.code === '23505') { // Código PostgreSQL para unique violation (ex: SKU)
+         if (error.code === '23505') {
              throw new BadRequestException(`Erro de duplicidade ao atualizar. Verifique SKU ou outros campos únicos.`);
          }
          throw new InternalServerErrorException(`Erro ao atualizar o produto ${id}.`);
     }
   }
-  // --- FIM MÉTODO update ---
+  // --- FIM ---
 
 
-  // Métodos existentes (verificarDisponibilidadeEstoque, reduzirEstoque) mantidos
-  // Ajustar findOne neles se necessário (agora retorna null)
+
 
   async verificarDisponibilidadeEstoque(id: string, quantidadeNecessaria: number, manager?: EntityManager): Promise<boolean> {
     this.logger.debug(`Verificando estoque para produto ${id}, quantidade ${quantidadeNecessaria}.`);
-    // Usar findOne sem lançar exceção aqui, tratar o null
+
     const repository = manager ? manager.getRepository(ProdutoEntity) : this.produtoRepository;
     const produto = await repository.findOne({ where: { id: id } });
     if (!produto) {
         this.logger.warn(`[verificarDisponibilidadeEstoque] Produto ${id} não encontrado.`);
-        return false; // Se produto não existe, não há estoque
+        return false;
     }
     const estoqueAtual = produto.quantidadeEstoque;
     const disponivel = estoqueAtual >= quantidadeNecessaria;
@@ -312,14 +286,11 @@ export class ProdutosService {
   }
 
   async reduzirEstoque(id: string, quantidadeAReduzir: number, manager: EntityManager): Promise<void> {
-    // É crucial que este método seja chamado DENTRO de uma transação (por isso recebe o manager)
-    // e após verificarDisponibilidadeEstoque
     const repository = manager.getRepository(ProdutoEntity);
     this.logger.log(`Reduzindo estoque para produto ${id}, quantidade ${quantidadeAReduzir}.`);
     try {
-        // Usar decrement para operação atômica
         const result = await repository.decrement({ id: id }, 'quantidadeEstoque', quantidadeAReduzir);
-        // Verificar se alguma linha foi afetada para garantir que o produto existia
+
         if (result.affected === 0) {
              throw new NotFoundException(`Produto com ID ${id} não encontrado durante a tentativa de decremento de estoque.`);
         }
@@ -331,4 +302,4 @@ export class ProdutosService {
     }
   }
 
-} // Fim da classe ProdutosService
+}

@@ -1,4 +1,3 @@
-// radical/backend/src/database/entities/item-pedido.entity.ts
 import {
     Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn,
 } from 'typeorm';
@@ -24,13 +23,13 @@ export class ItemPedidoEntity {
     @Column({ name: 'produto_id', type: 'uuid', nullable: true })
     produtoId: string | null;
 
-    // --- VERIFIQUE E CORRIJA AQUI ---
-    @Column({ name: 'nome_produto', type: 'varchar', length: 150, nullable: true }) // <-- Adicionado type: 'varchar'
+
+    @Column({ name: 'nome_produto', type: 'varchar', length: 150, nullable: true }) 
     nomeProduto: string | null;
 
-    @Column({ name: 'sku_produto', type: 'varchar', length: 100, nullable: true })  // <-- Adicionado type: 'varchar'
+    @Column({ name: 'sku_produto', type: 'varchar', length: 100, nullable: true })  
     skuProduto: string | null;
-    // --- FIM VERIFICAÇÃO ---
+ 
 
     @Column({ type: 'int' })
     quantidade: number;

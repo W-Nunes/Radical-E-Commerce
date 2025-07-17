@@ -3,5 +3,4 @@ export interface JwtPayload {
     id: string;  // ID do usuário
     sub?: string;    
     email: string;  // Email do usuário (ou username)
-    // Adicione mais dados se precisar (ex: roles)
 }

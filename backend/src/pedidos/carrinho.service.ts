@@ -156,14 +156,12 @@ export class CarrinhoService {
         produto = await this.produtosService.findOne(itemParaAtualizar.produtoId);
          if (!produto) {
              console.warn(`Produto ${itemParaAtualizar.produtoId} não encontrado. Removendo item ${itemCarrinhoId} do carrinho.`);
-             return this.removerItemDoCarrinho(carrinho, itemCarrinhoId); // Retorna Promise<Carrinho | null>
+             return this.removerItemDoCarrinho(carrinho, itemCarrinhoId); 
          }
 
-         // --- Acesso ao estoque (Erro 1 acontece aqui se 'estoque' não existir na entidade Produto) ---
-         if (produto.quantidadeEstoque < novaQuantidade) { // <<<<<<< VERIFIQUE SE 'estoque' EXISTE EM produto.entity.ts
+         if (produto.quantidadeEstoque < novaQuantidade) { 
             throw new BadRequestException(`Estoque insuficiente para '${produto.nome}'. Disponível: ${produto.quantidadeEstoque}, Tentando atualizar para: ${novaQuantidade}.`);
          }
-         // -----------------------------------------------------------------------------------------
 
         itemParaAtualizar.precoUnitarioRegistrado = produto.preco;
 
@@ -177,11 +175,9 @@ export class CarrinhoService {
     await this.itemCarrinhoRepository.save(itemParaAtualizar);
     console.log(`Quantidade do item ${itemCarrinhoId} (Prod: ${itemParaAtualizar.produtoId}) atualizada para ${novaQuantidade}.`);
 
-    // Retorna Promise<Carrinho | null>
     return this.obterCarrinhoPorUsuarioId(carrinho.usuarioId, ['itens']);
-  } // <--- Certifique-se que a chave aqui fecha o método corretamente
+  } 
 
-  // Retorna Promise<Carrinho | null> pois obterCarrinhoPorUsuarioId pode ser null
   async removerItemDoCarrinho(carrinho: Carrinho, itemCarrinhoId: number): Promise<Carrinho | null> {
     if (!carrinho || !carrinho.id) {
       throw new InternalServerErrorException('Objeto Carrinho inválido fornecido ao serviço (removerItem).');
@@ -194,9 +190,8 @@ export class CarrinhoService {
     }
     console.log(`Item ${itemCarrinhoId} removido do carrinho ${carrinho.id}.`);
     return this.obterCarrinhoPorUsuarioId(carrinho.usuarioId, ['itens']);
-  } // <--- Certifique-se que a chave aqui fecha o método corretamente
+  } 
 
-  // Retorna Promise<Carrinho | null> pois obterCarrinhoPorUsuarioId pode ser null
   async limparCarrinho(carrinho: Carrinho): Promise<Carrinho | null> {
     if (!carrinho || !carrinho.id) {
       throw new InternalServerErrorException('Objeto Carrinho inválido fornecido ao serviço (limparCarrinho).');
@@ -204,9 +199,8 @@ export class CarrinhoService {
     await this.itemCarrinhoRepository.delete({ carrinhoId: carrinho.id });
     console.log(`Todos os itens removidos do carrinho ${carrinho.id}.`);
     return this.obterCarrinhoPorUsuarioId(carrinho.usuarioId, ['itens']);
-  } // <--- Certifique-se que a chave aqui fecha o método corretamente
+  } 
 
-  // Esta função não é async e retorna number, está OK.
   calcularTotalCarrinho(carrinho: Carrinho): number {
     if (!carrinho || !carrinho.itens) {
       return 0;
@@ -216,6 +210,6 @@ export class CarrinhoService {
       const quantidade = Number(item.quantidade) || 0;
       return total + (preco * quantidade);
     }, 0);
-  } // <--- Certifique-se que a chave aqui fecha o método corretamente
+  } 
 
-} // <--- Certifique-se que a chave aqui fecha a CLASSE CarrinhoService
+} 

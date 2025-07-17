@@ -1,10 +1,8 @@
-// radical/backend/src/auth/users.service.ts
 import { Injectable, ConflictException } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
-// --- 1. Importa o módulo crypto inteiro ---
 import * as crypto from 'crypto';
 
-// Interface simples para nosso usuário em memória
+
 export interface MockUser {
   id: string;
   nome: string;
@@ -33,7 +31,7 @@ export class UsersService {
     if (existe) {
       throw new ConflictException(`Email ${dadosRegistro.email} já está em uso.`);
     }
-    // --- 2. Chama a função a partir do módulo importado ---
+
     const id = crypto.randomUUID();
     const saltRounds = 10;
     const hash = await bcrypt.hash(dadosRegistro.password, saltRounds);

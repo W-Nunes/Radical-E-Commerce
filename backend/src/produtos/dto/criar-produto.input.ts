@@ -1,4 +1,3 @@
-// radical/backend/src/produtos/dto/criar-produto.input.ts
 import { InputType, Field, Float, Int, ID } from '@nestjs/graphql';
 import {
   IsNotEmpty, // Não pode estar vazio
@@ -34,7 +33,6 @@ export class CriarProdutoInput {
   @Field(() => String, { description: 'Código único de referência do produto (SKU)' })
   @IsNotEmpty({ message: 'O SKU não pode estar vazio.' })
   @IsString()
-  // A validação se o SKU já existe será feita na lógica do resolver/service
   sku: string;
 
   @Field(() => Int, { description: 'Quantidade inicial em estoque', defaultValue: 0 }) // Valor padrão 0 no GraphQL
@@ -48,7 +46,7 @@ export class CriarProdutoInput {
   @IsUrl({}, { message: 'URL da imagem inválida.'}) // Valida se é uma URL
   imagemUrlPrincipal?: string | null;
 
-  @Field(() => ID, { description: 'ID da Categoria à qual o produto pertence' }) // ID é um tipo especial no GraphQL
+  @Field(() => ID, { description: 'ID da Categoria à qual o produto pertence' }) 
   @IsNotEmpty({ message: 'O ID da categoria não pode estar vazio.' })
   @IsUUID('4', { message: 'ID da categoria deve ser um UUID válido.'}) // Valida se é um UUID versão 4
   categoriaId: string; // Receberemos apenas o ID da categoria existente

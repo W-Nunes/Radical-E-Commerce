@@ -146,7 +146,6 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
-/* Estilos permanecem os mesmos */
 .text-shadow-glow-blue { text-shadow: 0 0 8px rgba(0, 82, 204, 0.7), 0 0 20px rgba(0, 82, 204, 0.5); }
 .text-shadow-glow-red { text-shadow: 0 0 8px rgba(229, 62, 62, 0.7), 0 0 20px rgba(229, 62, 62, 0.5); }
 .fade-enter-active, .fade-leave-active { transition: opacity 0.8s ease; }

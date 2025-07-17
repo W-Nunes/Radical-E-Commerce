@@ -1,11 +1,11 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
-import { ValidationPipe } from '@nestjs/common'; // Opcional: para validação
+import { ValidationPipe } from '@nestjs/common'; // Opcional
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
-  // --- ADICIONE A CONFIGURAÇÃO DE CORS AQUI ---
+  // CONFIGURAÇÃO DE CORS
   app.enableCors({
     origin: [
       'http://localhost:5173', // Para desenvolvimento local
@@ -18,7 +18,7 @@ async function bootstrap() {
   // -----------------------------------------
 
   // Opcional: Validação global
-  // app.useGlobalPipes(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true }));
+ app.useGlobalPipes(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true }));
 
   // Inicia o servidor backend
   await app.listen(3000);

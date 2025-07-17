@@ -1,7 +1,7 @@
 import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, OneToMany } from 'typeorm';
 import { ProdutoEntity } from './produto.entity';
 
-@Entity('categorias') // Nome da tabela no banco
+@Entity('categorias')
 export class CategoriaEntity {
   @PrimaryGeneratedColumn('uuid')
   id: string;
@@ -10,7 +10,7 @@ export class CategoriaEntity {
   nome: string;
 
   @Column({ length: 100, unique: true })
-  slug: string; // Ex: 'skates-completos'
+  slug: string; 
 
   @Column('text', { nullable: true })
   descricao: string | null;

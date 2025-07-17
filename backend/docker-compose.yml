@@ -1,11 +1,11 @@
 services:
-  # --- 1. Banco de Dados de Desenvolvimento ---
+  # 1. Banco de Dados de Desenvolvimento
   db:
     image: postgres:15
     container_name: radical_db_dev
     restart: always
     ports:
-      - "5432:5432" # Expõe a porta do dev DB no seu computador
+      - "5432:5432" # Expõe a porta do dev DB
     environment:
       POSTGRES_DB: radical_db
       POSTGRES_USER: radical_user
@@ -15,7 +15,7 @@ services:
     networks:
       - radical-net
 
-  # --- 2. Banco de Dados de Teste ---
+  # 2. Banco de Dados de Teste
   test-db:
     image: postgres:15
     container_name: radical_db_test
@@ -31,7 +31,7 @@ services:
     networks:
       - radical-net
 
-  # --- 3. Aplicação Backend ---
+  # 3. Aplicação Backend
   backend:
     build:
       context: .
@@ -49,7 +49,7 @@ services:
       DB_USERNAME: radical_user
       DB_PASSWORD: radical_password
       DB_DATABASE: radical_db
-      # Adicionaremos variáveis para o banco de teste depois
+      
     networks:
       - radical-net
 

@@ -24,18 +24,13 @@
   // Importa o componente do formulário
   import AdminProductForm from '@/components/admin/AdminProductForm.vue';
   // Importa os tipos necessários (ajuste o caminho se necessário)
-  import type { ProdutoOutput } from '@/types/produto.output'; // <<< CRIE ESTE TIPO
-  // Tipo dos dados emitidos pelo formulário (precisa ser compatível com CriarProdutoInput)
-  // Se você definiu ProdutoFormData em AdminProductForm, pode importar, senão defina aqui
+  import type { ProdutoOutput } from '@/types/produto.output'; 
 
-  
-  
-  // --- Estado ---
-  const creationError = ref<string | null>(null); // Mensagem de erro específica desta página
+  // Estado
+  const creationError = ref<string | null>(null); // Mensagem de erro desta página
   const router = useRouter();                   // Para redirecionamento
   
-  // --- GraphQL Mutation ---
-  // Certifique-se que os campos retornados aqui existem no seu ProdutoOutput
+  // GraphQL Mutation 
   const CRIAR_PRODUTO_MUTATION = gql`
     mutation CriarProdutoAdmin($dados: CriarProdutoInput!) {
       criarProduto(dados: $dados) {
@@ -46,7 +41,7 @@
     }
   `;
   
-  // --- Configuração useMutation ---
+  // Configuração useMutation
   const {
     mutate: executarCriarProduto,
     loading, // Usaremos para desabilitar o botão no formulário filho
@@ -54,45 +49,39 @@
     onDone,
   } = useMutation<{ criarProduto: ProdutoOutput }>(
       CRIAR_PRODUTO_MUTATION,
-      // Opção para invalidar cache de queries após a criação (ex: lista de produtos)
-      // () => ({
-      //   refetchQueries: ['NomeDaSuaQueryDeListarProdutos'], // Substitua pelo nome real
-      // })
+
   );
   
-  // --- Handler para o evento @submit do formulário ---
+  // Handler para o evento @submit do formulário
   const handleCreateProduct = (formData: ProdutoFormData) => {
-    creationError.value = null; // Limpa erro anterior
+    creationError.value = null;
     console.log('[AdminCreatePage] Recebido submit do form:', formData);
   
-    // Chama a mutation GraphQL com os dados recebidos do formulário
+    // Chama a mutation GraphQL com os dados recebidos
     executarCriarProduto({
       dados: { // Garante que o objeto passado corresponde ao CriarProdutoInput
           nome: formData.nome,
           descricao: formData.descricao,
-          preco: formData.preco, // Já deve ser number
+          preco: formData.preco,
           sku: formData.sku,
-          quantidadeEstoque: formData.quantidadeEstoque, // Já deve ser number
+          quantidadeEstoque: formData.quantidadeEstoque,
           imagemUrlPrincipal: formData.imagemUrlPrincipal,
           categoriaId: formData.categoriaId,
       }
     });
   };
   
-  // --- Callback de Sucesso ---
+  // Callback de Sucesso
   onDone((result) => {
     console.log('[AdminCreatePage] Produto criado com sucesso:', result.data?.criarProduto);
-    alert(`Produto "${result.data?.criarProduto.nome}" criado com sucesso!`); // Feedback simples por enquanto
-    // Redireciona para uma página de lista de produtos (mesmo que ainda não exista)
-    // ou para um dashboard admin
-    router.push('/admin/produtos'); // Ou router.push('/admin');
+    alert(`Produto "${result.data?.criarProduto.nome}" criado com sucesso!`); 
+    router.push('/admin/produtos');
   });
   
-  // --- Callback de Erro ---
+  // Callback de Erro
   onError((error) => {
     console.error('[AdminCreatePage] Erro ao criar produto:', error);
     if (error.graphQLErrors && error.graphQLErrors.length > 0) {
-      // Pega erro vindo do backend (ex: SKU duplicado)
       creationError.value = error.graphQLErrors[0].message || 'Erro desconhecido do servidor.';
     } else if (error.networkError) {
       creationError.value = `Erro de rede: ${error.networkError.message}.`;
@@ -104,5 +93,5 @@
   </script>
   
   <style scoped>
-  /* Estilos adicionais para a página, se necessário */
+
   </style>

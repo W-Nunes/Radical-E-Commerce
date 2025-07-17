@@ -1,12 +1,11 @@
-// Crie o arquivo: frontend/src/stores/frete.store.ts
-
 import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
 import { gql } from '@apollo/client/core';
 import apolloClient from '@/plugins/apollo';
-import type { FreteOutput } from '@/types/frete.output'; // Vamos criar este tipo
+import type { FreteOutput } from '@/types/frete.output'; 
 
 export const useFreteStore = defineStore('frete', () => {
+  
   // --- STATE ---
   const cep = ref<string>('');
   const opcoes = ref<FreteOutput[]>([]);

@@ -57,20 +57,19 @@ import { useRouter } from 'vue-router';
 import { useMutation } from '@vue/apollo-composable';
 import gql from 'graphql-tag';
 import { useAuthStore } from '@/stores/auth.store';
-import type { AuthPayload } from '../types/auth.payload'; // Ajuste o path se necessário
-import { useToast } from "vue-toastification"; // <<< Importar useToast
+import type { AuthPayload } from '../types/auth.payload'; 
+import { useToast } from "vue-toastification"; 
 
-// --- Refs ---
+// Refs 
 const email = ref('');
 const password = ref('');
-// const loginError = ref<string | null>(null); // <<< Não precisamos mais deste ref para exibir erro
 
-// --- Instâncias ---
+// Instâncias
 const authStore = useAuthStore();
 const router = useRouter();
-const toast = useToast(); // <<< Obter instância do toast
+const toast = useToast(); 
 
-// --- GraphQL ---
+// GraphQL
 const LOGIN_MUTATION = gql`
   mutation Login($dadosLogin: LoginInput!) {
     login(dadosLogin: $dadosLogin) {
@@ -80,7 +79,7 @@ const LOGIN_MUTATION = gql`
   }
 `;
 
-// --- Apollo ---
+// Apollo
 const {
   mutate: executarLogin,
   loading,
@@ -88,26 +87,25 @@ const {
   onError,
 } = useMutation< { login: AuthPayload } >(LOGIN_MUTATION);
 
-// --- Handler ---
+// Handler
 const handleLogin = () => {
-  // loginError.value = null; // <<< Não precisa mais
   console.log('[LoginPage] Tentando login com:', email.value);
   executarLogin({
     dadosLogin: { email: email.value, password: password.value }
   });
 };
 
-// --- Callbacks ---
+// Callbacks
 onDone(result => {
   console.log('[LoginPage] Login bem-sucedido!', result.data);
   if (result.data?.login) {
     const { accessToken, usuario } = result.data.login;
     authStore.setAuthData(accessToken, usuario);
-    toast.success(`Bem-vindo de volta, ${usuario.nome}!`); // <<< Usa toast de sucesso
+    toast.success(`Bem-vindo de volta, ${usuario.nome}!`);
     router.push('/');
   } else {
     console.error('[LoginPage] Erro inesperado: Dados de login não encontrados.');
-    toast.error("Erro inesperado do servidor após o login."); // <<< Usa toast de erro
+    toast.error("Erro inesperado do servidor após o login.");
   }
 });
 
@@ -119,12 +117,12 @@ onError(error => {
   } else if (error.networkError) {
     message = `Erro de rede: ${error.networkError.message}.`;
   }
-  toast.error(message); // <<< Usa toast de erro com a mensagem tratada
-  // loginError.value = message; // <<< Não precisa mais
+  toast.error(message);
+
 });
 
 </script>
 
 <style scoped>
-/* Estilos específicos para esta página, se necessário */
+
 </style>

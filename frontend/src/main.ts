@@ -1,34 +1,29 @@
-// radical/frontend/src/main.ts
 import { createApp, provide, h } from 'vue';
 import { createPinia } from 'pinia';
 import piniaPluginPersistedstate from 'pinia-plugin-persistedstate';
 
-// --- Apollo ---
+// Apollo
 import { DefaultApolloClient } from '@vue/apollo-composable';
-import apolloClient from './plugins/apollo'; // <<< IMPORTAR a instância única do plugin
-// --- Remover imports de config Apollo ---
+import apolloClient from './plugins/apollo'; 
 
-// --- Toastification ---
+
+// Toastification
 import Toast, { type PluginOptions, POSITION } from "vue-toastification";
 import "vue-toastification/dist/index.css";
-// --------------------
 
 import router from './router';
 import './style.css';
 import App from './App.vue';
 
-// --- Configuração Pinia (OK) ---
+// Configuração Pinia
 const pinia = createPinia();
 pinia.use(piniaPluginPersistedstate);
-// -----------------------------
 
-// --- REMOVER Configuração Apollo Client daqui ---
-
-// --- Criação da App Vue ---
+// Criação da App Vue
 const app = createApp({
   setup () {
     // Prove a instância ÚNICA importada do plugin
-    provide(DefaultApolloClient, apolloClient); // <<< Usar o apolloClient importado
+    provide(DefaultApolloClient, apolloClient); // Usa o apolloClient importado
   },
   render: () => h(App),
 });
@@ -36,9 +31,7 @@ const app = createApp({
 app.use(pinia); // Use Pinia ANTES de montar
 app.use(router);
 
-// --- Configuração Toastification (OK) ---
+// Configuração Toastification (OK)
 const toastOptions: PluginOptions = { /* ... suas opções ... */ };
 app.use(Toast, toastOptions);
-// ------------------------------------
-
 app.mount('#app');

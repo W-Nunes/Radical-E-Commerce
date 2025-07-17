@@ -1,4 +1,3 @@
-// backend/src/produtos/dto/produto-paginado.output.ts
 import { ObjectType, Field, Int } from '@nestjs/graphql';
 import { ProdutoOutput } from './produto.output';
 

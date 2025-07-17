@@ -1,4 +1,3 @@
-// radical/backend/src/produtos/produtos.resolver.ts
 import { Resolver, Query, Args, ID, Mutation, ResolveField, Parent, Int, Float } from '@nestjs/graphql';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, Not } from 'typeorm';
@@ -66,7 +65,6 @@ export class ProdutosResolver {
       limite,
     );
     
-    // A correção está aqui: usamos 'as' para indicar ao TypeScript que o tipo está correto.
     return resultadoDoServico as unknown as ProdutoPaginadoOutput;
   }
 

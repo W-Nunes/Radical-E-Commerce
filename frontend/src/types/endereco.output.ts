@@ -1,5 +1,3 @@
-// radical/frontend/src/types/endereco.output.ts
-
 // Espelha o EnderecoOutput DTO do backend
 export interface EnderecoOutputType {
     rua: string;

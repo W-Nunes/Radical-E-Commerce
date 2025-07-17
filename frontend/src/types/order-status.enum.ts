@@ -1,4 +1,4 @@
-// Define os status possíveis de um pedido (espelha o backend)
+// Define os status possíveis de um pedido espelhando o backend
 export enum OrderStatus {
     PENDING = 'PENDENTE',
     PROCESSING = 'PROCESSANDO',

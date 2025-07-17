@@ -127,7 +127,7 @@ import { useToast } from 'vue-toastification';
 import ProdutoCardSkeleton from './ProdutoCardSkeleton.vue';
 import FullScreenSlider from './FullScreenSlider.vue';
 
-// --- Interfaces ---
+// Interfaces
 interface Categoria { id: string; nome: string; }
 interface Produto { id: string; nome: string; preco: number; sku: string; imagemUrlPrincipal?: string | null; categoria: Categoria; emEstoque: boolean; quantidadeEstoque: number; }
 interface ProdutoPaginado { itens: Produto[]; total: number; pagina: number; totalPaginas: number; }
@@ -140,12 +140,12 @@ const carrinhoStore = useCarrinhoStore();
 const authStore = useAuthStore();
 const toast = useToast();
 
-// --- Estado Derivado da URL ---
+// Estado Derivado da URL 
 const termoBuscaAtual = computed(() => (route.query.q as string) || '');
 const paginaAtual = computed(() => Number(route.query.page || '1'));
 const ordenacaoAtual = computed(() => (route.query.sort as string) || 'MAIS_RECENTES');
 
-// --- Query 1: Busca Paginada (ativada por termoBuscaAtual) ---
+// Busca Paginada (ativada por termoBuscaAtual)
 const BUSCAR_PRODUTOS_PAGINADOS_QUERY = gql`
   query BuscarProdutosPaginados($pagina: Int, $limite: Int, $termoBusca: String, $ordenacao: ProdutoSort) {
     produtos(pagina: $pagina, limite: $limite, termoBusca: $termoBusca, ordenacao: $ordenacao) {
@@ -175,7 +175,7 @@ const {
 );
 const dadosPaginados = computed(() => resultadoBusca.value?.produtos);
 
-// --- Query 2: Produtos Aleatórios (ativada quando NÃO há busca) ---
+// Produtos Aleatórios (ativada quando NÃO há busca)
 const BUSCAR_PRODUTOS_ALEATORIOS_QUERY = gql`
   query BuscarProdutosAleatorios($limite: Int) {
     produtosAleatorios(limite: $limite) {
@@ -195,14 +195,12 @@ const {
   }
 );
 
-// --- Lógica Central ---
 const carregando = computed(() => loadingBusca.value || loadingAleatorios.value);
 const erro = computed(() => erroBusca.value || erroAleatorios.value);
 const produtosParaExibir = computed(() => {
   return termoBuscaAtual.value ? dadosPaginados.value?.itens : resultadoAleatorios.value?.produtosAleatorios;
 });
 
-// --- Funções de Navegação ---
 function mudarPagina(novaPagina: number) {
   router.push({ query: { ...route.query, page: novaPagina } });
 }
@@ -212,7 +210,7 @@ function onSortChange(event: Event) {
   router.push({ query: { ...route.query, sort: newSort, page: 1 } });
 }
 
-// --- Funções Auxiliares ---
+
 function formatarPreco(valor: number): string {
   if (typeof valor !== 'number') return '0,00';
   return valor.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });

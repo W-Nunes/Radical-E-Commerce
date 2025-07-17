@@ -18,6 +18,4 @@ export class RegistroInput {
   @MinLength(6, { message: 'A senha deve ter pelo menos 6 caracteres.' })
   password: string;
 
-  // @Field({ nullable: true }) // Exemplo se tivesse campo opcional
-  // telefone?: string;
 }

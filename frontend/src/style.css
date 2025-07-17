@@ -1,20 +1,8 @@
-/* src/style.css */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* Mantenha apenas estilos globais básicos ou resets, se necessário */
-/* Exemplo: */
 body {
-  /* Pode definir fontes globais aqui se não usar config do Tailwind */
-  /* font-family: 'SuaFonte', sans-serif; */
+
   @apply bg-gray-100 dark:bg-gray-900; /* Aplica cor de fundo base com Tailwind */
 }
-
-/* Estilos padrão de link (opcional, pode controlar via Tailwind também) */
-/* a { ... } */
-/* a:hover { ... } */
-
-/* Remova as regras como: */
-/* body { margin: 0; display: flex; ... } */
-/* #app { width: 100vw; margin: 0; text-align: center; ... } */

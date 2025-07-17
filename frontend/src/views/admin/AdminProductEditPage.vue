@@ -34,21 +34,20 @@
   import gql from 'graphql-tag';
   
   import AdminProductForm from '@/components/admin/AdminProductForm.vue';
-  // Importa os tipos necessários
   import type { ProdutoOutput } from '@/types/produto.output';
-  import type { ProdutoFormData } from '@/components/admin/AdminProductForm.vue'; // Importa do Form
+  import type { ProdutoFormData } from '@/components/admin/AdminProductForm.vue'; 
   
-  // --- Props ---
+  // Props
   // Recebe o 'id' da rota graças ao 'props: true' no router/index.ts
   const props = defineProps<{
-    id: string; // ID do produto vindo da URL
+    id: string;
   }>();
   
-  // --- Estado ---
+  // Estado
   const updateError = ref<string | null>(null); // Erro da mutation de update
   const router = useRouter();
   
-  // --- Query para buscar dados do produto ---
+  // Query para buscar dados do produto
   const PRODUTO_QUERY = gql`
     query BuscarProdutoParaEdicao($id: ID!) {
       produto(id: $id) {
@@ -133,31 +132,21 @@
         descricao: formData.descricao === '' ? null : formData.descricao,
         imagemUrlPrincipal: formData.imagemUrlPrincipal === '' ? null : formData.imagemUrlPrincipal,
     };
-  
-    // Remove campos que não foram modificados ou são nulos/undefined se a API não os aceitar
-    // (O DTO EditarProdutoInput já lida com campos opcionais, então isso pode não ser necessário)
-    // Object.keys(dadosParaEnviar).forEach(key => {
-    //    if (dadosParaEnviar[key] === undefined || dadosParaEnviar[key] === null) {
-    //       delete dadosParaEnviar[key];
-    //    }
-    // });
-  
-  
+
     executarEditarProduto({
-      id: props.id, // O ID do produto que estamos editando
-      dados: dadosParaEnviar // Os dados (apenas os modificados se o form tratar isso)
+      id: props.id, 
+      dados: dadosParaEnviar 
     });
   };
   
-  // --- Callback de Sucesso do Update ---
+  // Callback de Sucesso do Update
   onDoneUpdate((result) => {
     console.log('[AdminEditPage] Produto atualizado com sucesso:', result.data?.editarProduto);
     alert(`Produto "${result.data?.editarProduto.nome}" atualizado com sucesso!`);
-    // Redireciona de volta para a lista (ou dashboard)
-    router.push('/admin/produtos'); // Ou /admin
+    router.push('/admin/produtos'); 
   });
   
-  // --- Callback de Erro do Update ---
+  // Callback de Erro do Update
   onErrorUpdate((error) => {
     console.error('[AdminEditPage] Erro ao atualizar produto:', error);
      if (error.graphQLErrors && error.graphQLErrors.length > 0) {
@@ -179,5 +168,5 @@
   </script>
   
   <style scoped>
-  /* Estilos adicionais, se necessário */
+  
   </style>

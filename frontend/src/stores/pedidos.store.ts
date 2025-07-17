@@ -1,4 +1,3 @@
-// radical/frontend/src/stores/pedidos.store.ts
 import { defineStore } from 'pinia';
 import { ref } from 'vue';
 import { gql } from '@apollo/client/core';
@@ -6,13 +5,10 @@ import apolloClient from '@/plugins/apollo';
 import { useCarrinhoStore } from './carrinho.store';
 
 // Importar tipos necessários do frontend
-// Certifique-se que estes arquivos e tipos existem em src/types/
 import type { CheckoutEnderecoInputType } from '@/types/endereco.input';
 import type { PedidoType } from '@/types/pedido.output';
 
 // --- GraphQL Mutation ---
-// Deve espelhar a mutation 'criarPedido' definida no PedidosResolver do backend
-// E o fragmento deve bater com o PedidoOutput DTO do backend
 const CRIAR_PEDIDO_MUTATION = gql`
   mutation CriarPedidoMutation($endereco: EnderecoInput!) { # Nome da variável e tipo do backend!
     criarPedido(endereco: $endereco) {
@@ -21,13 +17,9 @@ const CRIAR_PEDIDO_MUTATION = gql`
       status
       valorTotal
       criadoEm
-      # Adicione outros campos do PedidoOutput se precisar na confirmação
-      # Ex: itens { id nomeProduto quantidade precoUnitarioCompra }
-      # Ex: usuario { id nome }
     }
   }
 `;
-// Nota: Se você definiu um fragmento para PedidoOutput, pode usá-lo aqui também.
 
 export const usePedidosStore = defineStore('pedidos', () => {
   // --- STATE ---
@@ -72,10 +64,9 @@ export const usePedidosStore = defineStore('pedidos', () => {
       pedidoAtual.value = data.criarPedido;
 
       console.log('[Pedidos Store] Limpando carrinho após criação do pedido...');
-      // Chamar a action que limpa o estado LOCAL da store do carrinho
+      // Chama a action que limpa o estado LOCAL da store do carrinho
       // para a UI refletir imediatamente, ou buscar do backend se preferir.
       carrinhoStore.limparCarrinhoLocal();
-      // OU: await carrinhoStore.buscarCarrinho();
 
       return data.criarPedido;
 
@@ -87,8 +78,6 @@ export const usePedidosStore = defineStore('pedidos', () => {
       isCreatingOrder.value = false; // Desativa loading
     }
   }
-
-  // TODO: Adicionar actions para buscar pedidos (buscarPedidoPorId, buscarMeusPedidos)
 
   // --- EXPORTAR ---
   return {

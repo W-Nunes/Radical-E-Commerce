@@ -72,21 +72,18 @@ import { useRouter } from 'vue-router';
 import { useMutation } from '@vue/apollo-composable';
 import gql from 'graphql-tag';
 import type { UserOutput } from '@/types/user.output';
-import { useToast } from 'vue-toastification'; // <<< Importar useToast
+import { useToast } from 'vue-toastification'; 
 
-// --- Refs ---
+// Refs
 const nome = ref('');
 const email = ref('');
 const password = ref('');
-// --- Refs de erro/sucesso removidas ---
-// const registerError = ref<string | null>(null);
-// const successMessage = ref<string | null>(null);
 
-// --- Instâncias ---
+// Instâncias
 const router = useRouter();
-const toast = useToast(); // <<< Obter instância do toast
+const toast = useToast(); //
 
-// --- GraphQL ---
+// GraphQL
 const REGISTER_MUTATION = gql`
   mutation Registrar($dadosRegistro: RegistroInput!) {
     registrar(dadosRegistro: $dadosRegistro) {
@@ -98,7 +95,7 @@ const REGISTER_MUTATION = gql`
   }
 `;
 
-// --- Apollo ---
+// Apollo
 const {
   mutate: executarRegistro,
   loading,
@@ -106,10 +103,8 @@ const {
   onError,
 } = useMutation< { registrar: UserOutput } >(REGISTER_MUTATION);
 
-// --- Handler ---
+// Handler
 const handleRegister = () => {
-  // registerError.value = null; // Removido
-  // successMessage.value = null; // Removido
   console.log('[RegisterPage] Tentando registrar com:', nome.value, email.value);
   executarRegistro({
     dadosRegistro: {
@@ -120,17 +115,16 @@ const handleRegister = () => {
   });
 };
 
-// --- Callbacks ---
+// Callbacks
 onDone(result => {
   console.log('[RegisterPage] Registro bem-sucedido!', result.data);
-  toast.success(`Usuário ${result.data?.registrar.nome} registrado! Faça o login.`); // <<< Usa toast
+  toast.success(`Usuário ${result.data?.registrar.nome} registrado! Faça o login.`); // Usa toast
   nome.value = '';
   email.value = '';
   password.value = '';
   setTimeout(() => {
     router.push('/login');
   }, 2500);
-  // successMessage.value = ... // Removido
 });
 
 onError(error => {
@@ -141,12 +135,11 @@ onError(error => {
    } else if (error.networkError) {
      message = `Erro de rede: ${error.networkError.message}.`;
    }
-   toast.error(message); // <<< Usa toast
-   // registerError.value = message; // Removido
+   toast.error(message); // Usa toast
 });
 
 </script>
 
 <style scoped>
-/* Estilos específicos, se necessário */
+
 </style>

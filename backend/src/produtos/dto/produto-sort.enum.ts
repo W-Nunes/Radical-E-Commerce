@@ -1,4 +1,3 @@
-// backend/src/produtos/dto/produto-sort.enum.ts
 import { registerEnumType } from '@nestjs/graphql';
 
 export enum ProdutoSort {

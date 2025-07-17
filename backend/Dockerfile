@@ -1,4 +1,5 @@
 # Estágio 1: Build da Aplicação
+
 # Usamos uma imagem Node.js como base
 FROM node:20-alpine AS builder
 
@@ -18,7 +19,7 @@ COPY . .
 RUN npm run build
 
 # Estágio 2: Imagem Final de Produção
-# Usamos uma imagem menor para a versão final
+# Imagem menor para a versão final
 FROM node:20-alpine
 
 WORKDIR /usr/src/app

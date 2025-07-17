@@ -1,4 +1,3 @@
-// radical/backend/src/auth/auth.resolver.ts
 import { Resolver, Mutation, Args, Query } from '@nestjs/graphql';
 import { UseGuards, UsePipes, ValidationPipe, InternalServerErrorException, Logger } from '@nestjs/common';
 import { AuthService } from './auth.service';
@@ -6,9 +5,9 @@ import { RegistroInput } from './dto/registro.input';
 import { LoginInput } from './dto/login.input';
 import { AuthPayload } from './dto/auth.payload';
 import { UserOutput } from './dto/user.output';
-import { JwtAuthGuard } from './guards/jwt-auth.guard'; // Usa o guard customizado
+import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { CurrentUser } from './decorators/current-user.decorator';
-import { UserEntity } from '../database/entities/user.entity'; // <<< Importa a entidade real
+import { UserEntity } from '../database/entities/user.entity'; 
 
 @Resolver(() => UserOutput)
 export class AuthResolver {
@@ -22,10 +21,8 @@ export class AuthResolver {
     @Args('dadosRegistro') dadosRegistro: RegistroInput,
   ): Promise<UserOutput> {
     this.logger.debug('[Resolver Radical] Recebida mutation registrar');
-    // AuthService.registrar retorna Omit<UserEntity, 'passwordHash'>
     const usuarioRegistrado = await this.authService.registrar(dadosRegistro);
     this.logger.debug('[Resolver Radical] Usuário registrado pelo service');
-    // Mapeia para UserOutput (tipos compatíveis)
     return usuarioRegistrado;
   }
 
@@ -43,7 +40,6 @@ export class AuthResolver {
   @Query(() => UserOutput, { name: 'meuPerfil', description: 'Retorna dados do usuário logado.' })
   @UseGuards(JwtAuthGuard) // Usa o guard customizado
   meuPerfil(
-    // <<< CORRIGIDO: Usa UserEntity aqui
     @CurrentUser() usuario: UserEntity,
   ): UserOutput {
     this.logger.debug(`[Resolver Radical meuPerfil] Query acessada.`);
@@ -60,7 +56,6 @@ export class AuthResolver {
         nome: usuario.nome,
         email: usuario.email,
         criadoEm: usuario.criadoEm
-        // Mapeie outros campos se necessário
     };
   }
 }

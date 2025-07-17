@@ -1,20 +1,20 @@
 import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, ManyToOne, OneToMany, JoinColumn } from 'typeorm';
-import { UserEntity } from './user.entity'; // Ajuste o caminho se necessário
+import { UserEntity } from './user.entity'; 
 import { ItemCarrinho } from './item-carrinho.entity';
 
-@Entity({ name: 'carrinhos'}) // Definindo schema 'pedidos'
+@Entity({ name: 'carrinhos'}) 
 export class Carrinho {
-  @PrimaryGeneratedColumn('uuid') // Usar UUID é uma boa prática
+  @PrimaryGeneratedColumn('uuid')
   id: string;
 
   @Column({ name: 'usuario_id', type: 'uuid' })
-  usuarioId: string; // Ou o tipo do ID do seu usuário
+  usuarioId: string; 
 
   @ManyToOne(() => UserEntity )
   @JoinColumn({ name: 'usuario_id' })
   usuario: UserEntity ;
 
-  @OneToMany(() => ItemCarrinho, item => item.carrinho, { cascade: true, eager: true }) // Eager loading pode ser útil aqui
+  @OneToMany(() => ItemCarrinho, item => item.carrinho, { cascade: true, eager: true }) 
   itens: ItemCarrinho[];
 
   @CreateDateColumn({ name: 'criado_em', type: 'timestamp with time zone' })

@@ -1,14 +1,12 @@
-// radical/frontend/src/stores/carrinho.store.ts
-
 import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
 import { gql } from '@apollo/client/core';
 import apolloClient from '@/plugins/apollo';
 import { useAuthStore } from './auth.store';
-import type { CarrinhoType } from '@/types/carrinho.output'; // Use seu tipo correto
-import type { ItemCarrinhoType } from '@/types/item-carrinho.output'; // Use seu tipo correto
+import type { CarrinhoType } from '@/types/carrinho.output'; 
+import type { ItemCarrinhoType } from '@/types/item-carrinho.output'; 
 
-// --- Fragmento GraphQL ---
+// Fragmento GraphQL
 const CarrinhoCompletoFragment = gql`
   fragment CarrinhoCompleto on Carrinho { # <-- Ajuste 'Carrinho' se necessário
     id
@@ -29,7 +27,7 @@ const CarrinhoCompletoFragment = gql`
   }
 `;
 
-// --- Operações GraphQL ---
+// Operações GraphQL
 
 const MEU_CARRINHO_QUERY = gql`
   query MeuCarrinho {
@@ -59,7 +57,7 @@ const LIMPAR_CARRINHO_MUTATION = gql`
   ${CarrinhoCompletoFragment}
 `;
 
-// --- NOVA MUTATION: ATUALIZAR QUANTIDADE ---
+// MUTATION: ATUALIZAR QUANTIDADE
 const ATUALIZAR_QUANTIDADE_MUTATION = gql`
   mutation AtualizarQuantidade($itemCarrinhoId: Int!, $novaQuantidade: Int!) { # Verifique tipo ID (Int!)
     atualizarQuantidadeItemCarrinho(itemCarrinhoId: $itemCarrinhoId, novaQuantidade: $novaQuantidade) {
@@ -68,10 +66,10 @@ const ATUALIZAR_QUANTIDADE_MUTATION = gql`
   }
   ${CarrinhoCompletoFragment}
 `;
-// --- FIM NOVA MUTATION ---
 
 
-// --- Store Pinia ---
+
+// Store Pinia
 export const useCarrinhoStore = defineStore('carrinho', () => {
   // State
   const carrinho = ref<CarrinhoType | null>(null);
@@ -85,7 +83,7 @@ export const useCarrinhoStore = defineStore('carrinho', () => {
   const carrinhoId = computed(() => carrinho.value?.id);
 
 
-  // --- ACTIONS ---
+  // ACTIONS
 
   async function buscarCarrinho() {
     const authStore = useAuthStore();
@@ -153,15 +151,14 @@ export const useCarrinhoStore = defineStore('carrinho', () => {
      }
   }
 
-  // --- INÍCIO DA FUNÇÃO FALTANTE ---
+
   async function atualizarQuantidadeItem(itemCarrinhoId: number, novaQuantidade: number) {
-      // Assegura que ID é number
       const idNum = Number(itemCarrinhoId);
       if (isNaN(idNum) || !Number.isInteger(idNum) || novaQuantidade < 1) {
           const err = new Error(`Dados inválidos para atualizar quantidade: ID=${itemCarrinhoId}, Qtd=${novaQuantidade}`);
           console.error('[Carrinho Store] ' + err.message);
           error.value = err;
-          throw err; // Lança erro para o componente
+          throw err;
       }
 
       console.log(`[Carrinho Store] Action atualizarQuantidadeItem ID: ${idNum}, Nova Qtd: ${novaQuantidade}`);
@@ -185,8 +182,6 @@ export const useCarrinhoStore = defineStore('carrinho', () => {
           throw err;
       }
   }
-  // --- FIM DA FUNÇÃO FALTANTE ---
-
 
   async function limparCarrinho() {
       console.log(`[Carrinho Store] Action limparCarrinho`);
@@ -211,7 +206,7 @@ export const useCarrinhoStore = defineStore('carrinho', () => {
       isLoading.value = false;
   }
 
-  // --- EXPORTAR ---
+  // EXPORTA
   return {
     // State
     carrinho,
@@ -230,10 +225,9 @@ export const useCarrinhoStore = defineStore('carrinho', () => {
     buscarCarrinho,
     adicionarItem,
     removerItem,
-    atualizarQuantidadeItem, // <<<=== GARANTIR QUE ESTÁ AQUI
+    atualizarQuantidadeItem, 
     limparCarrinho,
     limparCarrinhoLocal,
   };
-  // --- FIM DOS EXPORTS ---
 
-}); // Fim do defineStore
+});

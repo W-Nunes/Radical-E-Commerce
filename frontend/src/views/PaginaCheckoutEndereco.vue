@@ -109,34 +109,27 @@ import { useRouter } from 'vue-router';
 import { storeToRefs } from 'pinia';
 import { useAuthStore } from '@/stores/auth.store';
 import { useCarrinhoStore } from '@/stores/carrinho.store';
-// --- 1. IMPORTAR A usePedidosStore ---
 import { usePedidosStore } from '@/stores/pedidos.store';
 // --- Importar Tipos ---
-// Certifique-se que CheckoutEnderecoInputType também está definido/exportado em endereco.input.ts
 import type { EnderecoInputType, CheckoutEnderecoInputType } from '@/types/endereco.input';
 import type { ItemCarrinhoType } from '@/types/item-carrinho.output'; // Use seu tipo
 
 const router = useRouter();
 const authStore = useAuthStore();
 const carrinhoStore = useCarrinhoStore();
-// --- 2. INSTANCIAR a pedidosStore ---
 const pedidosStore = usePedidosStore();
 
 // Pegar estado reativo do carrinho
 const {
   itensCarrinho: itensCarrinhoCheckout,
   valorTotal: valorTotalCarrinho,
-  isLoading: isLoadingCarrinho // Loading da store do carrinho (para o resumo)
+  isLoading: isLoadingCarrinho 
 } = storeToRefs(carrinhoStore);
 
-// --- 3. PEGAR ESTADO REATIVO da pedidosStore ---
+// 3. PEGAR ESTADO REATIVO da pedidosStore
 // Pega isCreatingOrder e createOrderError da store de pedidos
 // Renomeia para isProcessing e erroCheckout para usar no template/lógica local
 const { isCreatingOrder: isProcessing, createOrderError: erroCheckout } = storeToRefs(pedidosStore);
-
-// --- 4. REMOVER refs locais que agora vêm da store ---
-// const isProcessing = ref(false); // REMOVIDO
-// const erroCheckout = ref<string | null>(null); // REMOVIDO
 
 // Objeto Reativo para o Endereço
 const enderecoEntrega = reactive<EnderecoInputType>({
@@ -171,36 +164,31 @@ function formatarCep(event: Event) {
     enderecoEntrega.cep = value.slice(0, 9);
 }
 
-// --- Função processarPedido ATUALIZADA (sem simulação) ---
+// Função processarPedido ATUALIZADA (sem simulação)
 async function processarPedido() {
-  // erroCheckout e isProcessing agora são reativos vindos da store
-  // A store deve resetar o erro no início da action criarPedido
 
   console.log('[Checkout] Tentando processar pedido com endereço:', JSON.parse(JSON.stringify(enderecoEntrega)));
-
   // Monta o objeto de dados esperado pela mutation/action
   const dadosParaMutation: CheckoutEnderecoInputType = {
       entrega: { ...enderecoEntrega }
-      // faturamento: ... (se necessário)
+
   };
 
   try {
-    // --- CHAMADA REAL À ACTION DA STORE ---
+    // CHAMADA REAL À ACTION DA STORE
     console.log('[Checkout] Chamando pedidosStore.criarPedido...');
-    // Chama a action que existe na pedidos.store.ts
-    // A action agora gerencia isCreatingOrder e createOrderError
-    const pedidoCriado = await pedidosStore.criarPedido(dadosParaMutation); // <<< USA A VARIÁVEL pedidosStore
+    const pedidoCriado = await pedidosStore.criarPedido(dadosParaMutation); // USA A VARIÁVEL pedidosStore
 
     if (!pedidoCriado || !pedidoCriado.id) {
        console.error('[Checkout] A action criarPedido não retornou um pedido válido.');
        throw new Error("Falha ao obter os dados do pedido criado.");
     }
-    // --- FIM DA CHAMADA REAL ---
+    // FIM DA CHAMADA REAL
 
     const pedidoIdReal = pedidoCriado.id; // Pega o ID REAL (UUID)
     console.log('[Checkout] Pedido criado com sucesso! ID:', pedidoIdReal);
 
-    // --- Redirecionar para página de sucesso com o ID REAL ---
+    // Redirecionar para página de sucesso com o ID REAL
     router.push({ name: 'PedidoSucesso', params: { id: pedidoIdReal } });
 
   } catch (error: any) {
@@ -209,14 +197,11 @@ async function processarPedido() {
     // Opcional: scrollar para o topo para mostrar a mensagem de erro que está em erroCheckout.value
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
-  // Não precisa mais de finally para isProcessing aqui, pois vem da store
 }
-// --- Fim função ---
 
 </script>
 
 <style scoped>
-/* Adiciona uma classe para os inputs para facilitar a estilização se quiser */
 .input-form {
     @apply mt-1 block w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm dark:text-white;
 }

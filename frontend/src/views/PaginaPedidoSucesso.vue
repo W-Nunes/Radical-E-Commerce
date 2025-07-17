@@ -87,8 +87,8 @@
   import { useRoute } from 'vue-router';
   import { gql } from '@apollo/client/core';
   import { useQuery } from '@vue/apollo-composable';
-  import type { PedidoType  } from '@/types/pedido.output'; // <<< VERIFIQUE/CRIE ESTE TIPO
-  import type { OrderStatus } from '@/types/order-status.enum'; // <<< VERIFIQUE/CRIE ESTE ENUM
+  import type { PedidoType  } from '@/types/pedido.output';
+  import type { OrderStatus } from '@/types/order-status.enum';
   
   // --- Query para buscar detalhes do pedido ---
   // Ajuste os campos conforme o PedidoType  do backend
@@ -127,7 +127,7 @@
   const route = useRoute();
   const pedidoId = computed(() => route.params.id as string); // Pega o ID da URL
   
-  // --- Executar a Query ---
+  // Executar a Query
   const { result, loading, error } = useQuery<{ pedidoPorId: PedidoType  | null }>(
     PEDIDO_POR_ID_QUERY,
     // Passa o ID como variável para a query
@@ -143,11 +143,11 @@
     })
   );
   
-  // --- Dados do Pedido ---
+  // Dados do Pedido
   // Usa computed para extrair o pedido do resultado da query
   const pedido = computed(() => result.value?.pedidoPorId);
   
-  // --- Funções Auxiliares ---
+  // Funções Auxiliares
   function formatarPreco(valor: number | undefined | null): string {
     if (typeof valor !== 'number') return '0,00';
     return valor.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
@@ -158,7 +158,7 @@
     try {
       return new Date(data).toLocaleDateString('pt-BR', {
         day: '2-digit', month: '2-digit', year: 'numeric',
-        // hour: '2-digit', minute: '2-digit' // Opcional: adicionar hora
+        hour: '2-digit', minute: '2-digit' 
       });
     } catch (e) {
       return '-';
@@ -200,7 +200,7 @@
     }
   }
   
-  // Opcional: Observar erro para log ou notificação
+  // Observar erro para log ou notificação
   watch(error, (newError) => {
       if (newError) {
           console.error("[PedidoSucesso] Erro ao buscar pedido:", newError);
@@ -211,5 +211,5 @@
   </script>
   
   <style scoped>
-  /* Estilos específicos se necessário */
+  
   </style>

@@ -1,15 +1,19 @@
 <div align="center">
-  <img src="https://i.imgur.com/83p0I3g.png" alt="Capa do Projeto Radical E-commerce" width="800"/>
   <h1>Radical E-commerce: Portfólio Full Stack</h1>
   <p>
     <strong>Uma plataforma de e-commerce completa, construída com uma arquitetura moderna e escalável para demonstrar competências de ponta em desenvolvimento de software.</strong>
   </p>
   <p>
+    <a href="https://radical-e-commerce.netlify.app/promocao" target="_blank">
+      <img src="https://img.shields.io/badge/Live%20Demo-Ver%20Projeto-brightgreen?style=for-the-badge&logo=netlify" alt="Live Demo">
+    </a>
+  </p>
+  <p>
     <a href="#-arquitetura-do-sistema">Arquitetura</a> •
+    <a href="#-deploy--hospedagem">Deploy</a> •
     <a href="#-tecnologias-utilizadas">Tecnologias</a> •
     <a href="#-como-executar-o-projeto">Como Executar</a> •
-    <a href="#-testes">Testes</a> •
-    <a href="#-banco-de-dados">Banco de Dados</a>
+    <a href="#-testes">Testes</a>
   </p>
 </div>
 
@@ -37,17 +41,28 @@ O sistema é construído sobre uma arquitetura modular, com um frontend dinâmic
 ## 🏗️ Arquitetura do Sistema
 A arquitetura foi planejada para ser escalável e modular. Embora desenvolvida como uma aplicação monolítica, a estrutura do backend em **módulos desacoplados** (Auth, Produtos, Pedidos, Pagamentos) simula uma abordagem de microserviços, facilitando a manutenção e a futura migração para serviços independentes.
 
-![Diagrama de Arquitetura](https://i.imgur.com/L4g2G0z.png)
 
 1.  **Frontend (Vue.js):** A camada de apresentação, responsável pela interface do usuário. Consome a API GraphQL do Backend.
 2.  **Backend (NestJS API):** O núcleo do sistema, expondo uma única API GraphQL que serve como um *Gateway* para os módulos de negócio.
 3.  **Database (PostgreSQL):** O banco de dados relacional que armazena todos os dados da aplicação.
 
+## 🚀 Deploy & Hospedagem
+A aplicação está totalmente online e funcional, com o frontend e o backend hospedados em plataformas distintas para refletir uma arquitetura de produção moderna.
+
+-   **Frontend (Vue.js):**
+    -   **Plataforma:** [**Netlify**](https://www.netlify.com/)
+    -   **URL do Projeto:** **[https://radical-e-commerce.netlify.app/promocao](https://radical-e-commerce.netlify.app/promocao)**
+    -   **Processo:** O deploy é contínuo e integrado com o GitHub. A cada `push` para a branch `main`, o Netlify automaticamente executa o `build` do projeto Vue e publica os arquivos estáticos. Foi configurado um arquivo `_redirects` para lidar corretamente com o roteamento de SPAs.
+
+-   **Backend (NestJS):**
+    -   **Plataforma:** [**Render**](https://render.com/)
+    -   **Processo:** A API foi containerizada com **Docker** e o deploy é feito no Render. O serviço está configurado para usar o `Dockerfile` do projeto, construindo e executando a imagem em um ambiente de produção. As variáveis de ambiente, incluindo as credenciais do banco de dados e segredos JWT, estão configuradas de forma segura na plataforma.
+
 ### Expansões Futuras
 - **Mensageria Assíncrona:** Integrar **RabbitMQ** ou **Kafka** para comunicação entre serviços (ex: notificar um serviço de e-mails quando um pedido for criado).
 - **Deploy em Nuvem com Orquestração:** Realizar o deploy dos containers Docker em um cluster **Kubernetes** (AKS ou EKS) na **Azure** ou **AWS**.
 
-## 🚀 Tecnologias Utilizadas
+## 🛠️ Tecnologias Utilizadas
 
 | Categoria | Tecnologia | Descrição |
 | :--- | :--- | :--- |
@@ -95,7 +110,7 @@ cd backend
 # Instale as dependências
 npm install
 ```
-O projeto está configurado para rodar com o Docker. O arquivo `.env.development` já contém as variáveis de ambiente necessárias para a conexão com o banco de dados.
+O projeto está configurado para rodar com o Docker. O arquivo `.env.development` deverão conter as variáveis de ambiente necessárias para a conexão com o banco de dados.
 
 ```bash
 # Suba os containers do backend e do banco de dados
@@ -135,7 +150,7 @@ npm run test:e2e
 O workflow de CI, configurado em `.github/workflows/ci.yml`, é acionado a cada `push` ou `pull request`. Ele automatiza a execução de todos os testes do backend em um ambiente limpo com Docker, garantindo que novas funcionalidades ou correções não introduzam regressões.
 
 ## ✍️ Autor
-Desenvolvido com dedicação por **Renan Wesler Nunes**.
+Desenvolvido por **Renan Wesler Nunes**.
 
 -   **GitHub:** [@W-Nunes](https://github.com/W-Nunes)
 -   **LinkedIn:** [Renan Wesler Nunes](https://www.linkedin.com/in/renan-wesler-nunes-06a89a325/)

@@ -1,4 +1,3 @@
-// backend/eslint.config.js
 const tseslint = require('typescript-eslint');
 const nest = require('@nestjs/eslint-plugin');
 const path = require('node:path');
@@ -18,7 +17,6 @@ module.exports = tseslint.config(
       parser: tseslint.parser,
       parserOptions: {
         project: true,
-        // Usa __dirname, que é a variável correta para o módulo commonjs
         tsconfigRootDir: __dirname,
       },
     },
