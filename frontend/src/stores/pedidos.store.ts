@@ -10,9 +10,8 @@ import type { PedidoType } from '@/types/pedido.output';
 
 // --- GraphQL Mutation ---
 const CRIAR_PEDIDO_MUTATION = gql`
-  mutation CriarPedidoMutation($endereco: EnderecoInput!) { # Nome da variável e tipo do backend!
+  mutation CriarPedidoMutation($endereco: EnderecoInput!) {
     criarPedido(endereco: $endereco) {
-      # Pedir os campos que você quer receber de volta após criar
       id
       status
       valorTotal
@@ -24,29 +23,50 @@ const CRIAR_PEDIDO_MUTATION = gql`
 export const usePedidosStore = defineStore('pedidos', () => {
   // --- STATE ---
   const pedidoAtual = ref<PedidoType | null>(null);
-  const isCreatingOrder = ref<boolean>(false); // Estado de loading
-  const createOrderError = ref<Error | null>(null); // Estado de erro
+  const isCreatingOrder = ref<boolean>(false);
+  const createOrderError = ref<Error | null>(null);
 
   // --- ACTIONS ---
   async function criarPedido(enderecoData: CheckoutEnderecoInputType): Promise<PedidoType> {
     console.log('[Pedidos Store] Action criarPedido iniciada com dados:', enderecoData);
-    isCreatingOrder.value = true; // Ativa loading
-    createOrderError.value = null; // Limpa erro anterior
+    isCreatingOrder.value = true;
+    createOrderError.value = null;
     const carrinhoStore = useCarrinhoStore();
 
     try {
-      // Confere a estrutura esperada pela variável $endereco na mutation
-      const variables = {
-          endereco: enderecoData // Se 'enderecoData' já tem { entrega, faturamento? }
-          // Ou: endereco: { entrega: enderecoData } // Se 'enderecoData' for só o EnderecoInputType
-      };
-      console.log('[Pedidos Store] Variáveis enviadas para mutation:', variables);
+      // ✅ INÍCIO DA CORREÇÃO ✅
+      
+      const { entrega } = enderecoData;
 
+      // 1. Validação simples para evitar chamadas desnecessárias
+      if (!entrega.cep || !entrega.rua || !entrega.numero || !entrega.bairro || !entrega.cidade || !entrega.estado) {
+        throw new Error("Todos os campos de endereço são obrigatórios.");
+      }
+
+      // 2. Limpeza e estruturação dos dados para corresponder ao DTO do backend
+      const variables = {
+        endereco: { // Objeto principal que a mutation espera
+          entrega: { // Objeto aninhado `entrega`
+            rua: entrega.rua,
+            numero: entrega.numero,
+            complemento: entrega.complemento || null, // Garante `null` se for vazio
+            bairro: entrega.bairro,
+            cidade: entrega.cidade,
+            estado: entrega.estado.toUpperCase(), // Garante UF em maiúsculas
+            cep: entrega.cep.replace(/\D/g, ''), // Remove qualquer coisa que não seja dígito
+          },
+          // Se houvesse um endereço de faturamento, ele iria aqui
+          faturamento: null,
+        }
+      };
+      
+      console.log('[Pedidos Store] Variáveis SANITIZADAS enviadas para mutation:', JSON.stringify(variables, null, 2));
+      
+      // ✅ FIM DA CORREÇÃO ✅
 
       const { data, errors } = await apolloClient.mutate<{ criarPedido: PedidoType }>({
         mutation: CRIAR_PEDIDO_MUTATION,
         variables: variables,
-        // Evitar cache na mutation de criação para garantir dados novos
         fetchPolicy: 'no-cache'
       });
 
@@ -56,26 +76,24 @@ export const usePedidosStore = defineStore('pedidos', () => {
       }
 
       if (!data?.criarPedido) {
-           console.error('[Pedidos Store] Resposta da mutation criarPedido vazia ou inválida.');
-           throw new Error('Falha ao processar a resposta da criação do pedido.');
+        console.error('[Pedidos Store] Resposta da mutation criarPedido vazia ou inválida.');
+        throw new Error('Falha ao processar a resposta da criação do pedido.');
       }
 
       console.log('[Pedidos Store] Pedido criado com sucesso:', data.criarPedido);
       pedidoAtual.value = data.criarPedido;
 
       console.log('[Pedidos Store] Limpando carrinho após criação do pedido...');
-      // Chama a action que limpa o estado LOCAL da store do carrinho
-      // para a UI refletir imediatamente, ou buscar do backend se preferir.
       carrinhoStore.limparCarrinhoLocal();
 
       return data.criarPedido;
 
     } catch (err: any) {
       console.error('[Pedidos Store] Erro CATCH ao criar pedido:', err);
-      createOrderError.value = err; // Armazena o erro no estado
-      throw err; // Re-lança para o componente
+      createOrderError.value = err;
+      throw err;
     } finally {
-      isCreatingOrder.value = false; // Desativa loading
+      isCreatingOrder.value = false;
     }
   }
 
