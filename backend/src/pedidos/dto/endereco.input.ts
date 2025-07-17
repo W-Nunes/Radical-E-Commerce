@@ -1,5 +1,5 @@
 import { InputType, Field } from '@nestjs/graphql';
-import { IsNotEmpty, IsOptional, IsString, MaxLength } from 'class-validator';
+import { IsNotEmpty, IsOptional, IsString, MaxLength, Length } from 'class-validator';
 
 @InputType()
 class EnderecoDetalheInput {
@@ -42,7 +42,7 @@ class EnderecoDetalheInput {
   @Field()
   @IsString()
   @IsNotEmpty()
-  @MaxLength(9) 
+  @Length(8, 8, { message: 'O CEP deve conter exatamente 8 dígitos.' })
   cep: string;
 }
 
