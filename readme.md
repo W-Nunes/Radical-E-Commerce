@@ -14,7 +14,7 @@
 </div>
 
 ## 📖 Visão Geral do Projeto
-**Radical E-commerce** é um projeto full-stack de uma loja virtual moderna e responsiva, focada no universo do skate e BMX. Desenvolvido para servir como um portfólio técnico, este projeto demonstra a aplicação de tecnologias de ponta, boas práticas de desenvolvimento, testes automatizados e integração contínua, refletindo as habilidades de um desenvolvedor sênior.
+**Radical E-commerce** é um projeto full-stack de uma loja virtual moderna e responsiva, focada no universo do skate e BMX. Desenvolvido para servir como um portfólio técnico, este projeto demonstra a aplicação de tecnologias de ponta, boas práticas de desenvolvimento, testes automatizados e integração contínua, refletindo as habilidades de um desenvolvedor.
 
 O sistema é construído sobre uma arquitetura modular, com um frontend dinâmico em **Vue.js 3**, um backend robusto em **NestJS** servindo uma API **GraphQL**, e um banco de dados **PostgreSQL** gerenciado pelo ORM **TypeORM**.
 
