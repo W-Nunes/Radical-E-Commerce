@@ -3,12 +3,9 @@ import { ref } from 'vue';
 import { gql } from '@apollo/client/core';
 import apolloClient from '@/plugins/apollo';
 import { useCarrinhoStore } from './carrinho.store';
-
-// Importar tipos necessários do frontend
 import type { CheckoutEnderecoInputType } from '@/types/endereco.input';
 import type { PedidoType } from '@/types/pedido.output';
 
-// --- GraphQL Mutation ---
 const CRIAR_PEDIDO_MUTATION = gql`
   mutation CriarPedidoMutation($endereco: EnderecoInput!) {
     criarPedido(endereco: $endereco) {
@@ -21,12 +18,10 @@ const CRIAR_PEDIDO_MUTATION = gql`
 `;
 
 export const usePedidosStore = defineStore('pedidos', () => {
-  // --- STATE ---
   const pedidoAtual = ref<PedidoType | null>(null);
   const isCreatingOrder = ref<boolean>(false);
   const createOrderError = ref<Error | null>(null);
 
-  // --- ACTIONS ---
   async function criarPedido(enderecoData: CheckoutEnderecoInputType): Promise<PedidoType> {
     console.log('[Pedidos Store] Action criarPedido iniciada com dados:', enderecoData);
     isCreatingOrder.value = true;
@@ -35,19 +30,16 @@ export const usePedidosStore = defineStore('pedidos', () => {
 
     try {
       const { entrega } = enderecoData;
-
-      // 1. Validação simples para evitar chamadas desnecessárias
+      
       if (!entrega.cep || !entrega.rua || !entrega.numero || !entrega.bairro || !entrega.cidade || !entrega.estado) {
         throw new Error("Todos os campos de endereço são obrigatórios.");
       }
 
-      // 2. Limpeza, formatação e garantia dos tipos de dados
       const variables = {
         endereco: {
           entrega: {
             rua: String(entrega.rua),
-            // ✅ AJUSTE FINAL: Garante que o número seja sempre uma string
-            numero: String(entrega.numero), 
+            numero: String(entrega.numero),
             complemento: entrega.complemento || null,
             bairro: String(entrega.bairro),
             cidade: String(entrega.cidade),
@@ -67,39 +59,48 @@ export const usePedidosStore = defineStore('pedidos', () => {
       });
 
       if (errors) {
-        console.error('[Pedidos Store] Erro GraphQL ao criar pedido:', errors);
-        throw errors[0] || new Error('Erro desconhecido do GraphQL ao criar pedido.');
+        // Lança o erro para ser pego pelo bloco CATCH
+        throw errors[0];
       }
 
       if (!data?.criarPedido) {
-        console.error('[Pedidos Store] Resposta da mutation criarPedido vazia ou inválida.');
         throw new Error('Falha ao processar a resposta da criação do pedido.');
       }
 
       console.log('[Pedidos Store] Pedido criado com sucesso:', data.criarPedido);
       pedidoAtual.value = data.criarPedido;
 
-      console.log('[Pedidos Store] Limpando carrinho após criação do pedido...');
       carrinhoStore.limparCarrinhoLocal();
 
       return data.criarPedido;
 
     } catch (err: any) {
+      // ✅ NOVO TRATAMENTO DE ERRO DETALHADO ✅
       console.error('[Pedidos Store] Erro CATCH ao criar pedido:', err);
-      createOrderError.value = err;
-      throw err;
+      
+      // Tenta extrair a mensagem de validação detalhada do NestJS
+      const validationErrors = err.graphQLErrors?.[0]?.extensions?.response?.message;
+      if (validationErrors && Array.isArray(validationErrors)) {
+        const firstError = validationErrors[0];
+        console.error('--- ERRO DE VALIDAÇÃO DETALHADO DO BACKEND ---');
+        console.error(firstError);
+        // Cria um erro mais amigável para o usuário
+        const userFriendlyError = new Error(`Erro de validação: ${firstError}`);
+        createOrderError.value = userFriendlyError;
+        throw userFriendlyError;
+      } else {
+         createOrderError.value = err;
+         throw err;
+      }
     } finally {
       isCreatingOrder.value = false;
     }
   }
 
-  // --- EXPORTAR ---
   return {
-    // State
     pedidoAtual,
     isCreatingOrder,
     createOrderError,
-    // Actions
     criarPedido,
   };
 });
