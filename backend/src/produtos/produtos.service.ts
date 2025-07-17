@@ -29,6 +29,20 @@ export class ProdutosService {
     // --- FIM ADIÇÃO ---
   ) {}
 
+
+  async findOneBySku(sku: string): Promise<ProdutoEntity | null> {
+    this.logger.debug(`[findOneBySku] Buscando produto com SKU: ${sku}`);
+    const produto = await this.produtoRepository.findOne({
+        where: { sku: sku },
+        relations: ['categoria'], // Garante que a categoria venha junto
+    });
+    if (!produto) {
+      this.logger.warn(`[findOneBySku] Produto com SKU ${sku} não encontrado.`);
+      return null;
+    }
+    return produto;
+  }
+  
   async findRandom(limite = 4): Promise<ProdutoEntity[]> {
     this.logger.debug(`[findRandom] Buscando ${limite} produtos aleatórios.`);
     try {

@@ -97,6 +97,17 @@ type EnderecoOutput {
   rua: String!
 }
 
+type Frete {
+  """Prazo de entrega em dias úteis"""
+  prazoEntrega: String!
+
+  """Código do serviço (Ex: PAC, SEDEX)"""
+  servico: String!
+
+  """Valor do frete em Reais (R$)"""
+  valor: Float!
+}
+
 type ItemCarrinho {
   adicionadoEm: DateTime!
   id: Int!
@@ -195,6 +206,7 @@ enum ProdutoSort {
 }
 
 type Query {
+  calcularFrete(cep: String!): [Frete!]!
   categorias: [Categoria!]!
   meuCarrinho: Carrinho
 
@@ -203,6 +215,7 @@ type Query {
   meusPedidos: [Pedido!]!
   pedidoPorId(id: ID!): Pedido
   produto(id: ID!): Produto
+  produtoPorSku(sku: String!): Produto
   produtos(categoriaSlug: String, limite: Int = 4, ordenacao: ProdutoSort = MAIS_RECENTES, pagina: Int = 1, termoBusca: String): ProdutoPaginadoOutput!
   produtosAleatorios(limite: Int = 4): [Produto!]!
 }

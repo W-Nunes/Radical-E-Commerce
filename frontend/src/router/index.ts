@@ -4,8 +4,17 @@ import type { RouteRecordRaw } from 'vue-router';
 // Importa o store de autenticação para ser usado no guard
 import { useAuthStore } from '@/stores/auth.store';
 
+
+
 // Definição das Rotas com campos 'meta'
 const routes: Array<RouteRecordRaw> = [
+  {
+    path: '/promocao',
+    name: 'Promocao',
+    component: () => import('@/views/PaginaPromocao.vue'),
+    meta: { isPromoPage: true } // Um marcador para a nossa lógica
+  },
+
   {
     path: '/',
     name: 'Home',
@@ -104,11 +113,18 @@ const router = createRouter({
   },
 });
 
-// --- GUARDA DE NAVEGAÇÃO GLOBAL ---
+// --- GUARDA DE NAVEGAÇÃO ---
+// --- GUARDA DE NAVEGAÇÃO  ---
 router.beforeEach((to, from, next) => {
-  // Obtém o store de autenticação DENTRO do guard, pois ele só está
-  // disponível após a inicialização do Pinia em main.ts
   const authStore = useAuthStore();
+  
+  // --- LÓGICA DE REDIRECIONAMENTO PARA PROMOÇÃO ---
+  const promoVisto = sessionStorage.getItem('promoVisto');
+  if (!promoVisto && to.name !== 'Promocao') {
+    sessionStorage.setItem('promoVisto', 'true');
+    return next({ name: 'Promocao' });
+  }
+  // --- FIM DA LÓGICA ---
 
   const requiresAuth = to.matched.some(record => record.meta.requiresAuth);
   const requiresGuest = to.matched.some(record => record.meta.requiresGuest);

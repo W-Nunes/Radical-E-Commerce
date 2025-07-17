@@ -98,20 +98,40 @@
              <span>Subtotal ({{ totalItens }} itens):</span>
              <span class="font-medium">R$ {{ formatarPreco(valorTotal) }}</span>
            </div>
-           <div class="flex justify-between">
-             <span>Frete:</span>
-             <span class="font-medium">Grátis</span>
-           </div>
-           <hr class="my-3 border-gray-300 dark:border-gray-600">
+
+           <div class="pt-4 border-t border-gray-200 dark:border-gray-600">
+            <label for="cep" class="block text-sm font-bold text-gray-700 dark:text-gray-300">Calcular Frete</label>
+            <div class="mt-1 flex rounded-md shadow-sm">
+              <input v-model="cepInput" @keyup.enter="handleCalcularFrete" type="text" id="cep" placeholder="00000-000" class="input-form flex-grow !rounded-r-none appearance-none block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-azul-radical dark:focus:ring-offset-gray-800 focus:border-azul-radical/0 sm:text-sm bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white">
+              <button @click="handleCalcularFrete" :disabled="freteStore.isLoading" class="relative -ml-px inline-flex items-center space-x-2 rounded-r-md border border-gray-300 bg-gray-50 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 disabled:opacity-50">
+                <span>{{ freteStore.isLoading ? '...' : 'OK' }}</span>
+              </button>
+            </div>
+
+            <div v-if="freteStore.error" class="text-red-500 text-xs mt-1">{{ freteStore.error.message }}</div>
+
+            <div v-if="freteStore.opcoes.length > 0" class="mt-4 space-y-2">
+              <div v-for="opcao in freteStore.opcoes" :key="opcao.servico" @click="freteStore.selecionarOpcao(opcao)"
+                class="p-3 border rounded-md cursor-pointer transition-colors"
+                :class="freteStore.selecionado?.servico === opcao.servico ? 'bg-blue-100 border-azul-radical dark:bg-blue-900/50' : 'hover:bg-gray-50 dark:border-gray-600 dark:hover:bg-gray-700'">
+                <div class="flex justify-between items-center">
+                  <span class="font-semibold text-sm">{{ opcao.servico }}</span>
+                  <span class="font-bold text-sm">R$ {{ formatarPreco(opcao.valor) }}</span>
+                </div>
+                <p class="text-xs text-gray-500">Prazo: {{ opcao.prazoEntrega }} dias</p>
+              </div>
+            </div>
+          </div>
+          <hr class="my-3 border-gray-300 dark:border-gray-600">
            <div class="flex justify-between text-lg font-bold text-gray-900 dark:text-white">
              <span>Total:</span>
-             <span>R$ {{ formatarPreco(valorTotal) }}</span>
+             <span>R$ {{ formatarPreco(totalComFrete) }}</span>
            </div>
          </div>
          <button
-           :disabled="!itensCarrinho || itensCarrinho.length === 0 || isLoading"
-           class="mt-6 w-full bg-azul-radical hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-md transition duration-150 ease-in-out shadow disabled:opacity-50 disabled:bg-gray-400 dark:disabled:bg-gray-600"
            @click="irParaCheckout"
+           :disabled="!freteStore.selecionado || !itensCarrinho || itensCarrinho.length === 0 || isLoading"
+           class="mt-6 w-full bg-azul-radical hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-md transition duration-150 ease-in-out shadow disabled:opacity-50 disabled:bg-gray-400 dark:disabled:bg-gray-600"
            >
            {{ isLoading ? 'Aguarde...' : 'Ir para Checkout' }}
          </button>
@@ -127,22 +147,26 @@ import { storeToRefs } from 'pinia';
 import { useCarrinhoStore } from '@/stores/carrinho.store';
 import { useAuthStore } from '@/stores/auth.store';
 import { useRouter } from 'vue-router';
-// --- Importar o tipo ItemCarrinhoType (ASSUMINDO que ele está atualizado) ---
+import { useFreteStore } from '@/stores/frete.store';
 import type { ItemCarrinhoType } from '@/types/item-carrinho.output';
 
 const carrinhoStore = useCarrinhoStore();
 const authStore = useAuthStore();
 const router = useRouter();
+const freteStore = useFreteStore();
 
 const { itensCarrinho, valorTotal, totalItens, isLoading, fetchError } = storeToRefs(carrinhoStore);
 
-// --- Estados locais para feedback ---
 const removendoItemId = ref<number | null>(null);
-const atualizandoItemId = ref<number | null>(null); // <<< NOVO
-const erroGeral = ref<string | null>(null);      // <<< Renomeado de erroRemocao
+const atualizandoItemId = ref<number | null>(null);
+const erroGeral = ref<string | null>(null);
+const cepInput = ref('');
+
+const totalComFrete = computed(() => {
+  return valorTotal.value + freteStore.valorFreteSelecionado;
+});
 
 onMounted(() => {
-  // ... (código onMounted mantido) ...
   console.log('[PaginaCarrinho] onMounted - Iniciando.');
   console.log('[PaginaCarrinho] onMounted - Autenticado:', authStore.isAuthenticated);
   if (!carrinhoStore.carrinho && !isLoading.value && authStore.isAuthenticated) {
@@ -151,81 +175,69 @@ onMounted(() => {
   }
 });
 
-// Formatador (OK)
+function handleCalcularFrete() {
+  freteStore.calcularFrete(cepInput.value);
+}
+
 function formatarPreco(valor: number | undefined | null): string {
   if (typeof valor !== 'number') return '0,00';
   return valor.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
 
-
-// --- FUNÇÃO NOVA: Atualizar Quantidade ---
 async function atualizarQuantidade(item: ItemCarrinhoType, novaQuantidade: number) {
   if (novaQuantidade < 1) {
       console.warn('[CarrinhoView] Tentativa de reduzir quantidade abaixo de 1 ignorada.');
       return;
   }
 
-  // Opcional: Verificar estoque máximo no frontend
-  // if (item.produto?.quantidadeEstoque && novaQuantidade > item.produto.quantidadeEstoque) {
-  //    erroGeral.value = `Desculpe, só temos ${item.produto.quantidadeEstoque} de "${item.produto.nome}" em estoque.`;
-  //    return;
-  // }
-
-  atualizandoItemId.value = item.id; // Ativa loading
-  erroGeral.value = null;            // Limpa erro
+  atualizandoItemId.value = item.id;
+  erroGeral.value = null;
   console.log(`[CarrinhoView] Tentando atualizar item ID: ${item.id} para quantidade: ${novaQuantidade}`);
 
   try {
-    // Chama a action na store (que criamos no passo anterior)
     await carrinhoStore.atualizarQuantidadeItem(item.id, novaQuantidade);
     console.log(`[CarrinhoView] Quantidade do item ${item.id} atualizada com sucesso (via store).`);
   } catch (error: any) {
     console.error('[CarrinhoView] Erro ao atualizar quantidade:', error);
     erroGeral.value = error.message || 'Falha ao atualizar a quantidade do item.';
   } finally {
-    atualizandoItemId.value = null; // Desativa loading
+    atualizandoItemId.value = null;
   }
 }
-// --- FIM FUNÇÃO NOVA ---
 
-
-// Função Remover (OK, ajustada para usar erroGeral)
 async function confirmarRemoverItem(itemId: number, nomeProduto?: string | null) {
   const nome = nomeProduto || 'este item';
   if (confirm(`Tem certeza que deseja remover "${nome}" do carrinho?`)) {
     removendoItemId.value = itemId;
-    erroGeral.value = null; // <<< Usa erroGeral
+    erroGeral.value = null;
     console.log(`[CarrinhoView] Tentando remover item ID: ${itemId}`);
     try {
       await carrinhoStore.removerItem(itemId);
       console.log(`[CarrinhoView] Item ${itemId} removido com sucesso (via store).`);
     } catch (error: any) {
       console.error('[CarrinhoView] Erro ao remover item:', error);
-      erroGeral.value = error.message || 'Falha ao remover item do carrinho.'; // <<< Usa erroGeral
+      erroGeral.value = error.message || 'Falha ao remover item do carrinho.';
     } finally {
       removendoItemId.value = null;
     }
   }
 }
 
-// Função Limpar Carrinho (OK, ajustada para usar erroGeral)
 async function limparCarrinhoCompleto() {
   if (confirm('Tem certeza que deseja remover todos os itens do carrinho?')) {
-     erroGeral.value = null; // <<< Usa erroGeral
+     erroGeral.value = null;
      console.log(`[CarrinhoView] Tentando limpar carrinho completo...`);
      try {
          await carrinhoStore.limparCarrinho();
          console.log(`[CarrinhoView] Carrinho limpo com sucesso (via store).`);
      } catch(error: any) {
          console.error('[CarrinhoView] Erro ao limpar carrinho:', error);
-         erroGeral.value = error.message || 'Falha ao limpar o carrinho.'; // <<< Usa erroGeral
+         erroGeral.value = error.message || 'Falha ao limpar o carrinho.';
      }
   }
 }
 
-// Função Checkout (OK)
 function irParaCheckout() {
-  // ... (código mantido) ...
   if (!authStore.isAuthenticated) {
     alert('Você precisa estar logado para finalizar a compra.');
     router.push({ name: 'Login' });
@@ -235,13 +247,16 @@ function irParaCheckout() {
      alert('Seu carrinho está vazio!');
      return;
   }
+  if (!freteStore.selecionado) {
+    alert('Por favor, calcule e selecione uma opção de frete.');
+    return;
+  }
   console.log('Navegando para a página de checkout (endereço)...');
   router.push({ name: 'CheckoutEndereco' });
 }
 
 </script>
 
-// Estilos (OK)
 <style scoped>
 /* ... (estilos mantidos) ... */
 input[type='number']::-webkit-inner-spin-button,
@@ -251,5 +266,10 @@ input[type='number']::-webkit-outer-spin-button {
 }
 input[type='number'] {
   -moz-appearance: textfield; /* Firefox */
+}
+
+/* Adicionando classe para reutilizar no input de CEP */
+.input-form {
+    @apply appearance-none block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-azul-radical dark:focus:ring-offset-gray-800 focus:border-azul-radical/0 sm:text-sm bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white;
 }
 </style>

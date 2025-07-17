@@ -6,7 +6,7 @@
           A Cultura Radical Vive Aqui
         </h1>
         <p class="max-w-2xl mx-auto text-lg md:text-xl text-gray-300 mb-8">
-          Encontre os melhores shapes, rodas e acessórios para levar sua session ao próximo nível.
+          Encontre os melhores shapes, rodas e acessórios para elevar sua session ao próximo nível.
         </p>
         <a href="#produtos" class="bg-azul-radical hover:bg-opacity-80 text-white font-bold py-3 px-8 rounded-md transition duration-200 text-lg">
           Ver Produtos
@@ -38,8 +38,8 @@
         </div>
       </div>
 
-      <div v-if="carregando" class="text-center py-20">
-        <p class="text-gray-500 dark:text-gray-400 text-lg animate-pulse">Buscando produtos...</p>
+      <div v-if="carregando" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
+        <ProdutoCardSkeleton v-for="n in 4" :key="n" />
       </div>
       <div v-else-if="erro" class="text-center py-10 bg-red-100 dark:bg-gray-800 border border-red-400 text-vermelho-radical px-4 py-3 rounded relative max-w-lg mx-auto" role="alert">
         <strong class="font-bold block text-lg mb-2">Oops! Algo deu errado!</strong>
@@ -111,6 +111,8 @@
          <p>Nenhum produto encontrado.</p>
       </div>
     </div>
+    
+    <FullScreenSlider v-if="!termoBuscaAtual" />
   </div>
 </template>
 
@@ -122,6 +124,8 @@ import { gql } from '@apollo/client/core';
 import { useCarrinhoStore } from '@/stores/carrinho.store';
 import { useAuthStore } from '@/stores/auth.store';
 import { useToast } from 'vue-toastification';
+import ProdutoCardSkeleton from './ProdutoCardSkeleton.vue';
+import FullScreenSlider from './FullScreenSlider.vue';
 
 // --- Interfaces ---
 interface Categoria { id: string; nome: string; }

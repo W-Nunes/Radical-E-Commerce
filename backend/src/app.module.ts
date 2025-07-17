@@ -14,6 +14,7 @@ import { AuthModule } from './auth/auth.module';
 import { PedidosModule } from './pedidos/pedidos.module';
 import { PagamentosModule } from './pagamentos/pagamentos.module';
 import { SeedModule } from './seed/seed.module';
+import { FreteModule } from './frete/frete.module';
 
 @Module({
   imports: [
@@ -59,12 +60,13 @@ import { SeedModule } from './seed/seed.module';
       playground: true,
     }),
 
-    // Seus outros módulos
+    // Outros módulos
     ProdutosModule,
     AuthModule,
     PedidosModule,
     PagamentosModule,
     SeedModule,
+    FreteModule,
   ],
   controllers: [AppController],
   providers: [AppService],

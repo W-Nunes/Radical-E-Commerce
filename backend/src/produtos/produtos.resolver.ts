@@ -33,7 +33,20 @@ export class ProdutosResolver {
   ) {}
 
   
+  @Query(() => ProdutoOutput, { name: 'produtoPorSku', nullable: true })
+  async buscarProdutoPorSku(
+    @Args('sku', { type: () => String }) sku: string,
+  ): Promise<ProdutoEntity | null> {
+    this.logger.debug(`[buscarProdutoPorSku] Buscando produto com SKU: ${sku}`);
+    const produtoEntidade = await this.produtosService.findOneBySku(sku);
 
+    if (!produtoEntidade) {
+      this.logger.warn(`[buscarProdutoPorSku] Produto com SKU ${sku} não encontrado.`);
+      return null;
+    }
+    return produtoEntidade;
+  }
+  
   @Query(() => ProdutoPaginadoOutput, { name: 'produtos' })
   async buscarTodosOsProdutos(
     @Args('categoriaSlug', { type: () => String, nullable: true }) categoriaSlug?: string,
