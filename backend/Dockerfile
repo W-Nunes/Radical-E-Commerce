@@ -32,4 +32,4 @@ COPY --from=builder /usr/src/app/dist ./dist
 EXPOSE 3000
 
 # O comando para iniciar a aplicação
-CMD ["node", "dist/main"]
+CMD ["node", "dist/src/main"]
