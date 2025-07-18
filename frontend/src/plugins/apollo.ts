@@ -4,7 +4,7 @@ import { setContext } from '@apollo/client/link/context';
 import { onError } from "@apollo/client/link/error";
 
 const httpLink = createHttpLink({
-  uri: import.meta.env.VITE_GRAPHQL_ENDPOINT || 'http://localhost:3000/graphql',
+  uri: import.meta.env.VITE_GRAPHQL_ENDPOINT || 'https://radical-e-commerce.onrender.com/graphql',
 });
 
 // Middleware para adicionar o Header Authorization lendo do localStorage
