@@ -1,5 +1,5 @@
 import { InputType, Field } from '@nestjs/graphql';
-import { IsNotEmpty, IsOptional, IsString, MaxLength, Length } from 'class-validator';
+import { IsNotEmpty, IsOptional, IsString, MaxLength, Length, IsNumberString  } from 'class-validator';
 
 @InputType()
 class EnderecoDetalheInput {
@@ -10,9 +10,9 @@ class EnderecoDetalheInput {
   rua: string;
 
   @Field()
-  @IsString()
-  @IsNotEmpty()
-  @MaxLength(10)
+  @IsNotEmpty({ message: 'O número não pode estar vazio.' })
+  @IsNumberString({}, { message: 'O número deve ser uma string de dígitos.' }) // Garante que o valor seja uma string contendo apenas números
+  @MaxLength(10, { message: 'O número deve ter no máximo 10 caracteres.' })
   numero: string;
 
   @Field({ nullable: true })
